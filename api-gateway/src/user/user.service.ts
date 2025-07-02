@@ -2,6 +2,7 @@ import { Inject, Injectable } from '@nestjs/common';
 import { USER_SERVICE } from 'src/constants';
 import { ClientProxy } from '@nestjs/microservices';
 import { firstValueFrom } from 'rxjs';
+import { UpdateUserDto } from './dto/update-user.dto';
 
 @Injectable()
 export class UserService {
@@ -19,5 +20,12 @@ export class UserService {
     return await firstValueFrom(this.userServiceClient.send("getUserBy_EmailPassword",{username,password}))
   }
 
+  async updateUserById({id,updateUserDto}:{id:string,updateUserDto:UpdateUserDto}){
+    return await firstValueFrom(this.userServiceClient.send("updateUserById",{id,updateUserDto}))  
+  }
+
+  async deleteUserById(_id:string){
+    return await firstValueFrom(this.userServiceClient.send("deleteUserById",_id));
+  }
 
 }

@@ -6,7 +6,7 @@ import { Model } from 'mongoose';
 import { faker } from '@faker-js/faker';
 import * as bcrypt from 'bcrypt';
 import { Role, RoleDocument } from 'src/role/entities/role.entity';
-import { ROLE_SLUG } from 'src/constants';
+import { ACCOUNT_TYPE, ROLE_SLUG } from 'src/constants';
 const saltRounds = 10;
 @Injectable()
 export class UserSeeder {
@@ -36,6 +36,10 @@ export class UserSeeder {
         password: await bcrypt.hash('123456', saltRounds),
         avatar: faker.image.avatar(),
         roleId: userRole?.slug,
+        accountType:ACCOUNT_TYPE.LOCAL,
+        isActive:false,
+        codeId:undefined,
+        codeExpired: undefined
       });
     }
     

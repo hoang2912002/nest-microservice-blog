@@ -1,8 +1,5 @@
-import { Optional } from "@nestjs/common"
-import { IsBoolean, IsEmail, IsString } from "class-validator"
-
-export class CreateUserDto {}
-
+import { Optional } from "@nestjs/common";
+import { IsBoolean, IsEmail, IsString } from "class-validator";
 
 export class SignUpDto {
     @IsString()

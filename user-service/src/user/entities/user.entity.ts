@@ -1,6 +1,7 @@
 
+import { Optional } from '@nestjs/common';
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
-import { Date, HydratedDocument } from 'mongoose';
+import { HydratedDocument } from 'mongoose';
 
 export type UserDocument = HydratedDocument<User>;
 
@@ -23,6 +24,19 @@ export class User {
 
   @Prop()
   roleId: string;
+
+  @Prop({default:"Local"})
+  accountType: string;
+
+  @Prop({default: false})
+  isActive: boolean;
+
+  @Prop()
+  @Optional()
+  codeId: string;
+
+  @Prop({ type: Date })
+  codeExpired: Date | null;
 }
 
 export const UserSchema = SchemaFactory.createForClass(User);

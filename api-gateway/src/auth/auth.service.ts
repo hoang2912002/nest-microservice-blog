@@ -4,6 +4,8 @@ import { ClientProxy } from '@nestjs/microservices';
 import { USER_SERVICE } from 'src/constants';
 import { SignInDto } from 'src/user/dto/signin.dto';
 import { UserService } from 'src/user/user.service';
+import { SignUpDto } from './dto/signUp.dto';
+import { firstValueFrom } from 'rxjs';
 
 @Injectable()
 export class AuthService {
@@ -36,4 +38,7 @@ export class AuthService {
         };
     }
 
+    async signUp(signUpDto:SignUpDto){
+        return await firstValueFrom(this.userServiceClient.send("signUp",signUpDto))
+    }
 }
