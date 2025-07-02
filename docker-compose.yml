@@ -1,0 +1,22 @@
+version: '3.8'
+
+services:
+  mongo-user:
+    image: mongo:6.0
+    container_name: mongo-user
+    restart: always
+    ports:
+      - "27017:27017"  # chỉ mở port này nếu bạn cần truy cập từ bên ngoài
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: root
+      MONGO_INITDB_ROOT_PASSWORD: 123456
+    volumes:
+      - user-mongo-data:/data/db
+    networks:
+      - user-network
+
+volumes:
+  user-mongo-data:
+
+networks:
+  user-network:

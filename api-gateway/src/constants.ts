@@ -1,0 +1,3 @@
+export const USER_SERVICE="USER_SERVICE"
+export const PRODUCT_SERVICE="PRODUCT_SERVICE"
+export const JWT_SECRET_KEY="42ecab13-df83-4c85-9bba-c851d3d263ef"
