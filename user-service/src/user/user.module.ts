@@ -5,6 +5,7 @@ import { UserSeeder } from './entities/user.seed';
 import { MongooseModule } from '@nestjs/mongoose';
 import { User, UserSchema } from './entities/user.entity';
 import { Role, RoleSchema } from 'src/role/entities/role.entity';
+import { ClientProxyModule } from 'src/clientModule';
 
 @Module({
   imports:[
@@ -12,6 +13,7 @@ import { Role, RoleSchema } from 'src/role/entities/role.entity';
       { name: User.name, schema: UserSchema },
       { name: Role.name, schema: RoleSchema },
     ]),
+    ClientProxyModule
   ],
   controllers: [UserController,UserSeeder],
   providers: [UserService,UserSeeder],

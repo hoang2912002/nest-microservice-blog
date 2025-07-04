@@ -23,3 +23,11 @@ export class SignUpDto {
     @Optional()
     avatar:string
 }
+
+export class VerifyTokenDto {
+    @IsString()
+    _id: string
+
+    @IsString()
+    codeId:string
+}

@@ -1,3 +1,4 @@
+import { HttpException, HttpStatus } from '@nestjs/common';
 import * as bcrypt from 'bcrypt';
 import mongoose from 'mongoose';
 const saltRounds = 10;
@@ -20,3 +21,22 @@ export const comparePassword = async (password:string,hashPassword) => {
 export const checkMongoIdValid = (id:string) => {
     return !!mongoose.isValidObjectId(id)
 }
+
+export const successResponse = (data: any, message = 'Thành công') => {
+  return {
+    success: true,
+    message,
+    data,
+    statusCode: HttpStatus.OK
+  };
+};
+
+export const errorResponse = (message = 'Lỗi xảy ra', statusCode = HttpStatus.BAD_REQUEST) => {
+  throw new HttpException(
+    {
+      success: false,
+      message,
+    },
+    statusCode,
+  );
+};

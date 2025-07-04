@@ -8,6 +8,7 @@ import { RoleModule } from './role/role.module';
 import { MailerModule } from '@nestjs-modules/mailer';
 import { join } from 'path';
 import { HandlebarsAdapter } from '@nestjs-modules/mailer/dist/adapters/handlebars.adapter';
+import { ClientProxyModule } from './clientModule';
 
 @Module({
   imports: [
@@ -50,6 +51,7 @@ import { HandlebarsAdapter } from '@nestjs-modules/mailer/dist/adapters/handleba
     }),
     UserModule,
     RoleModule,
+    ClientProxyModule
   ],
   controllers: [AppController],
   providers: [AppService],

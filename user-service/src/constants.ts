@@ -7,3 +7,6 @@ export const ACCOUNT_TYPE = {
     LOCAL:"LOCAL",
     GOOGLE:"GOOGLE"
 }
+
+export const PRODUCT_SERVICE = "PRODUCT_SERVICE"
+export const USER_SERVICE = "USER_SERVICE"

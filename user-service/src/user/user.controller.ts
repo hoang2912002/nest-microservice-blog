@@ -1,7 +1,7 @@
 import { Controller } from '@nestjs/common';
 import { MessagePattern, Payload } from '@nestjs/microservices';
 import { UserService } from './user.service';
-import { CreateUserDto, SignUpDto } from './dto/create-user.dto';
+import { CreateUserDto, SignUpDto, VerifyTokenDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 
 @Controller()
@@ -39,5 +39,20 @@ export class UserController {
   @MessagePattern("deleteUserById")
   async deleteUserById(@Payload() _id:string){
     return await this.userService.deleteUserById(_id)
+  }
+
+  @MessagePattern("verifyToken")
+  async verifyToken(@Payload() verifyTokenDto:VerifyTokenDto){
+    return await this.userService.verifyToken(verifyTokenDto)
+  }
+
+  @MessagePattern("resendVerifyToken")
+  async resendVerifyToken(@Payload() _id:string){
+    return await this.userService.resendVerifyToken(_id)
+  }
+
+  @MessagePattern('ping')
+  ping() {
+    return 'pong from user-service';
   }
 }
