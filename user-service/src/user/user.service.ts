@@ -29,8 +29,15 @@ export class UserService {
   //   }
   // }
 
-  findAll() {
-    return `This action returns all user`;
+  async findAll() {
+    const user =  await this.userModule.find();
+    return successResponse(user, 'Danh sách thông tin người dùng!');
+  }
+  
+  async findAllArrId() {
+    const user =  await this.userModule.find().select('_id');
+    const ids = user.map(u => u._id.toString());
+    return successResponse(ids, 'Danh sách thông tin _id người dùng!');
   }
 
   async findOne(id: string) {

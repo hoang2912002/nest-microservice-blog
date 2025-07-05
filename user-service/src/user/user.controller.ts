@@ -8,9 +8,14 @@ import { UpdateUserDto } from './dto/update-user.dto';
 export class UserController {
   constructor(private readonly userService: UserService) {}
 
-  @MessagePattern('findAllUser')
-  findAll() {
-    return this.userService.findAll();
+  @MessagePattern('findAll')
+  async findAll() {
+    return await this.userService.findAll();
+  }
+  //List arr _id
+  @MessagePattern('findAllArrId')
+  async findAllArrId() {
+    return await this.userService.findAllArrId();
   }
 
   @MessagePattern('findOneUser')

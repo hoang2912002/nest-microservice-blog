@@ -7,6 +7,7 @@ import { ClientProxyModule } from './clientModule';
 import { GraphQLModule } from '@nestjs/graphql';
 import { ApolloDriver, ApolloFederationDriver } from '@nestjs/apollo';
 import { join } from 'path';
+import { UserModule } from './user/user.module';
 
 @Module({
   imports: [
@@ -26,7 +27,9 @@ import { join } from 'path';
       autoSchemaFile: {
         federation: 2,
       },
-    })
+    }),
+    UserModule
+    
   ],
   controllers: [AppController],
   providers: [AppService],

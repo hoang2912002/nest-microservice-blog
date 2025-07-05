@@ -18,6 +18,7 @@ model Post{
   id Int @default(autoincrement()) @id
   slug String
   title String
+  content String
   thumbnail String?
   published Boolean @default(false)
   authorId String
