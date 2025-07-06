@@ -60,4 +60,12 @@ export class UserController {
   ping() {
     return 'pong from user-service';
   }
+
+
+  //-----------------Product service-----------------------
+  @MessagePattern('getUser_ById_FromPost')
+  async getUser_ById_FromPost(@Payload() _id:string){
+    return this.userService.getUser_ById_FromPost(_id)
+  }
+
 }

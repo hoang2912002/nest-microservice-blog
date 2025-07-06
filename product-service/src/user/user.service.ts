@@ -4,6 +4,8 @@ import { UpdateUserDto } from './dto/update-user.dto';
 import { USER_SERVICE } from 'src/constants';
 import { ClientProxy } from '@nestjs/microservices';
 import { errorResponse, successResponse } from 'src/util/helper';
+import { User } from './entities/user.entity';
+import { lastValueFrom } from 'rxjs';
 
 @Injectable()
 export class UserService {
@@ -11,29 +13,20 @@ export class UserService {
     @Inject(USER_SERVICE)
     private userClient: ClientProxy
   ){}
-  create(createUserDto: CreateUserDto) {
-    return 'This action adds a new user';
-  }
-
+ 
   async findAll() {
     try {
       return  await this.userClient.send("findAll",{}).toPromise()
     } catch (error) {
       return errorResponse(`Lỗi máy chủ!`, HttpStatus.INTERNAL_SERVER_ERROR)
     }
-
-    return `This action returns all user`;
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} user`;
-  }
-
-  update(id: number, updateUserDto: UpdateUserDto) {
-    return `This action updates a #${id} user`;
-  }
-
-  remove(id: number) {
-    return `This action removes a #${id} user`;
+  async getUserById(authorId:string){
+    try {
+      return await lastValueFrom(this.userClient.send('getUser_ById_FromPost',authorId))
+    } catch (error) { 
+      throw new Error("Không thể kết nối đến User-service")
+    }
   }
 }

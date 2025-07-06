@@ -8,6 +8,10 @@ import { GraphQLModule } from '@nestjs/graphql';
 import { ApolloDriver, ApolloFederationDriver } from '@nestjs/apollo';
 import { join } from 'path';
 import { UserModule } from './user/user.module';
+import { PostModule } from './post/post.module';
+import { CommentModule } from './comment/comment.module';
+import { TagModule } from './tag/tag.module';
+import { LikeModule } from './like/like.module';
 
 @Module({
   imports: [
@@ -28,7 +32,11 @@ import { UserModule } from './user/user.module';
         federation: 2,
       },
     }),
-    UserModule
+    UserModule,
+    PostModule,
+    CommentModule,
+    TagModule,
+    LikeModule
     
   ],
   controllers: [AppController],

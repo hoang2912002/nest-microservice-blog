@@ -1,0 +1,49 @@
+Ở đây t sẽ giải thích luồng xử lý của get data
+Gỉa xử ta có 1 câu query từ UI muốn lấy danh sách post kèm theo thông tin người dùng 
+query {
+  posts {
+    id
+    title
+    user {
+      id
+      name
+    }
+  }
+}
+
+Bước 1: Đầu tiên UI sẽ gửi 1 request HTTP graphql này đến api-gateway
+
+Bước 2: Tiếp theo apollo gateway sẽ tự động tách câu query thành 2: posts, user gửi về đúng từng service
+
+    1. Gửi đến product-service để lấy danh sách post và trường authorId (đã khai báo ở entities)
+    2. Sau đó dùng authorId để gửi tiếp đến user-service để resolve trường user
+
+Bước 3: Ở product-service
+    
+    1. Cần phải khai báo tất cả  các field value của post ở entities cũng như là các relationShip
+       
+       Lưu ý cần khai báo thêm 
+       @Field(() => User)
+        user: User;
+        => Để tương ứng với user ở query UI truyền đi
+
+    2. Tiếp theo sẽ viết api ở resolve để lấy danh sách post
+    
+    3. Khai báo thêm function 
+        @ResolveField(() => User)
+        async user(@Parent() post: Post): Promise<User> {
+            return this.userClientService.getUserById(post.authorId);
+        }
+
+        @ResolveField(() => User) => Khai báo hàm resolver để resolve field user của Post
+        @Parent() post: Post => Lấy Post hiện tại đang được resolve (mỗi phần tử trong danh sách posts)
+        
+
+Bước 4. Sau khi có kết quả trả về product-service sẽ nhận và gửi nó lại cho gateway bao gồm cả user
+
+Bước 5. Gateway tổng hợp và trả về kết quả cho UI
+       Apollo Gateway tổng hợp kết quả từ nhiều subgraph (post-service và user-service) 
+       thành một response duy nhất
+
+Lưu ý muốn sử dụng được Apollo federation:
+    1. Cần phải khai báo @Directive('@key(fields: "id")') ở mỗi entities

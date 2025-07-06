@@ -63,4 +63,5 @@ export class AuthService implements OnModuleInit {
     async resendVerifyToken(_id:string){
         return await firstValueFrom(this.userServiceClient.send("resendVerifyToken",_id))
     }
+    
 }

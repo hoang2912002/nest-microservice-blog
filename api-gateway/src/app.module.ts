@@ -32,6 +32,8 @@ import  * as dayjs from 'dayjs';
         server: {
           context: ({ req }) => {
             const token = req.headers.authorization?.split(' ')[1];
+            const isPublic = req.body.isPublic
+            if(isPublic) return true
             if (!token) throw new UnauthorizedException('Missing token');
 
             try {

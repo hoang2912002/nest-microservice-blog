@@ -207,4 +207,21 @@ export class UserService {
       return errorResponse(`Lỗi máy chủ!`, HttpStatus.INTERNAL_SERVER_ERROR)
     }
   }
+
+
+  //-----------------Product service-----------------------
+  async getUser_ById_FromPost(_id:string){
+    try {
+      if(!checkMongoIdValid(_id)){
+        return errorResponse(`Mã người dùng sai: ${_id}`, HttpStatus.NOT_FOUND)
+      }
+      const user = await this.userModule.findById({_id:Object(_id)});
+      if(!user){
+        return errorResponse(`Người dùng không tồn tại!`, HttpStatus.NOT_FOUND)
+      }
+      return user
+    } catch (error) {
+      return errorResponse(`Lỗi máy chủ!`, HttpStatus.INTERNAL_SERVER_ERROR)
+    }
+  }
 }
