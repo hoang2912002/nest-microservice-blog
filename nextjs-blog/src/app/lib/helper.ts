@@ -32,7 +32,6 @@ export const getPagesToShow = ({
 {
     currentPage:number, totalPages:number
 }) => {
-    console.log(currentPage, totalPages)
     const delta = 2;
     const range: (number | string)[] = []
     let left = currentPage - delta

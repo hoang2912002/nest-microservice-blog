@@ -1,4 +1,4 @@
-import { Inject, Injectable, OnModuleInit } from '@nestjs/common';
+import { Inject, Injectable, OnModuleInit, UnauthorizedException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { ClientProxy } from '@nestjs/microservices';
 import { USER_SERVICE } from 'src/constants';
@@ -6,6 +6,8 @@ import { SignInDto } from 'src/user/dto/signin.dto';
 import { UserService } from 'src/user/user.service';
 import { SignUpDto, VerifyTokenDto } from './dto/signUp.dto';
 import { firstValueFrom } from 'rxjs';
+import cookieParser from 'cookie-parser';
+import { Response } from 'express';
 
 @Injectable()
 export class AuthService implements OnModuleInit {
@@ -37,11 +39,11 @@ export class AuthService implements OnModuleInit {
         return null;
     }
 
-    async login(user:any){
+    async login(user:any,res:any){
         const {email,_id,name,avatar} = user.data
         const payload = { username: name, sub: _id };
         const access_token= await this.jwtService.signAsync(payload);
-        return {
+        const data = {
             access_token,
             user:{
                 email,
@@ -50,6 +52,15 @@ export class AuthService implements OnModuleInit {
                 avatar
             }
         };
+        const expiredAt = new Date(Date.now() + 1000 * 60 * 60); // 1 giờ
+        res.cookie("session",JSON.stringify(data),{
+            httpOnly: true,
+            secure: true,
+            expires: expiredAt,
+            sameSite: 'lax',
+            path: '/'
+        })
+        return data
     }
 
     async signUp(signUpDto:SignUpDto){
@@ -64,4 +75,12 @@ export class AuthService implements OnModuleInit {
         return await firstValueFrom(this.userServiceClient.send("resendVerifyToken",_id))
     }
     
+
+    async getSession(req:any){
+        const cookie = req.cookies['session']
+        if(!cookie){
+            throw new UnauthorizedException("Không tìm thấy phiên đăng nhập!")
+        }
+        return cookie
+    }
 }

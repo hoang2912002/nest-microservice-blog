@@ -4,7 +4,6 @@ import { Post } from "../lib/type/modelTypes";
 
 type Props = Partial<Post>;
 const PostCard = ({id,title,slug,thumbnail,content,createdAt,user}: Post) => {
-    console.log(user)
   return (
     <div className="bg-white rounded-lg shadow-md overflow-hidden flex flex-col">
       <div className="relative h-60 ">
