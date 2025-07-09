@@ -1,6 +1,7 @@
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import * as cookieParser from 'cookie-parser';
+// import { CustomHttpExceptionFilter } from './util/http-exception.filter';
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
   app.use(cookieParser());
@@ -12,6 +13,7 @@ async function bootstrap() {
     credentials: true
   }
   );
+  // app.useGlobalFilters(new CustomHttpExceptionFilter());
   await app.listen(process.env.PORT ?? 8000);
   console.log("Api gateway running in port 8000")
 }

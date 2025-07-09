@@ -5,11 +5,19 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import Link from "next/link";
-import { useActionState } from "react";
-import { Form } from "react-hook-form";
+import { useActionState, useEffect } from "react";
+import { toast } from "sonner"
 
 const SignInForm = () => {
     const [state, action] = useActionState(signIn, undefined)
+    useEffect(()=>{
+        if (state?.message && state?.ok === true){
+            toast.success(state?.message)
+        }
+        else if(state?.message){
+            toast.error(state?.message)
+        }
+    },[state])
     return (
         <>
             <div className="flex flex-col min-h-[50vh] h-full w-full items-center justify-center px-4 mt-30">
@@ -36,6 +44,9 @@ const SignInForm = () => {
                                     defaultValue={state?.data?.email}
                                 />
                             </div>
+                            {!!state?.errors?.email && (
+                                <p className="text-red-500 text-sm">{state.errors.email}</p>
+                            )}
 
                             <div className="grid gap-2">
                                 <div className="flex justify-between items-center">
@@ -58,6 +69,9 @@ const SignInForm = () => {
                                     defaultValue={state?.data?.password}
                                 />
                             </div>
+                            {!!state?.errors?.password && (
+                                <p className="text-red-500 text-sm">{state.errors.password}</p>
+                            )}
 
                             <Button type="submit" className="w-full">
                                 Login

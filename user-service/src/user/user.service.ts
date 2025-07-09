@@ -101,7 +101,8 @@ export class UserService {
     })
     if(!userData) return errorResponse(`Email không tồn tại/ không đúng: ${username}`, HttpStatus.NOT_FOUND)
     const comparePass = await comparePassword(password, userData.password)
-    if(!comparePass) return errorResponse(`Mật khẩu/ tài khoảng không đúng!`, HttpStatus.NOT_FOUND)
+    if(!comparePass) 
+      return errorResponse(`Mật khẩu/ tài khoảng không đúng!`, HttpStatus.NOT_FOUND)
     return successResponse(userData, `Đăng nhập thành công!`);
   }
   isEmailExist = async (email: string,id?: string): Promise<boolean> => {
@@ -142,7 +143,10 @@ export class UserService {
           codeId
         }
       }) 
-    return successResponse(data._id, `Đăng ký tài khoản thành công!`);
+    return {data:{
+      _id:data.id
+    }
+    };
   }
 
   async verifyToken(verifyTokenDto:VerifyTokenDto){
@@ -163,7 +167,9 @@ export class UserService {
         await this.userModule.updateOne({_id},{
           isActive:true
         },{new: true})
-        return successResponse(_id, `Kích hoạt tài khoàn thành công!`)
+        return {data:{
+          _id
+        }}
     }
     } catch (error) {
       return errorResponse(`Lỗi máy chủ!`, HttpStatus.INTERNAL_SERVER_ERROR)

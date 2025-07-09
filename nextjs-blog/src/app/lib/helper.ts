@@ -17,11 +17,12 @@ export const successResponse = (data: any, message = 'Thành công') => {
   };
 };
 
-export const errorResponse = (message = 'Lỗi xảy ra', statusCode = HttpStatus.BAD_REQUEST) => {
+export const errorResponse = (message = 'Lỗi xảy ra', statusCode = HttpStatus.BAD_REQUEST,fieldError="") => {
     return {
         success: false,
         message,
-        statusCode
+        statusCode,
+        fieldError
     };
 };
 

@@ -8,6 +8,7 @@ import { SignUpDto, VerifyTokenDto } from './dto/signUp.dto';
 import { firstValueFrom } from 'rxjs';
 import cookieParser from 'cookie-parser';
 import { Response } from 'express';
+import { error } from 'console';
 
 @Injectable()
 export class AuthService implements OnModuleInit {
@@ -32,7 +33,7 @@ export class AuthService implements OnModuleInit {
     }
     async validateUser(username: string, password: string): Promise<any> {
         const user = await this.usersService.login({username,password});
-        if (user) {
+        if (user && user.statusCode === 200) {
           const { password, ...result } = user;
           return result;
         }
@@ -40,7 +41,13 @@ export class AuthService implements OnModuleInit {
     }
 
     async login(user:any,res:any){
-        const {email,_id,name,avatar} = user.data
+        const {email,_id,name,avatar,isActive } = user.data
+        if(!isActive){
+            return {
+                errorField:"isActive",
+                message:"Tài khoản chưa được kích hoạt"
+            }
+        }
         const payload = { username: name, sub: _id };
         const access_token= await this.jwtService.signAsync(payload);
         const data = {
@@ -52,15 +59,17 @@ export class AuthService implements OnModuleInit {
                 avatar
             }
         };
-        const expiredAt = new Date(Date.now() + 1000 * 60 * 60); // 1 giờ
-        res.cookie("session",JSON.stringify(data),{
-            httpOnly: true,
-            secure: true,
-            expires: expiredAt,
-            sameSite: 'lax',
-            path: '/'
-        })
-        return data
+        // const expiredAt = new Date(Date.now() + 1000 * 60 * 60); // 1 giờ
+        // res.cookie("session",JSON.stringify(data),{
+        //     httpOnly: true,
+        //     secure: true,
+        //     expires: expiredAt,
+        //     sameSite: 'lax',
+        //     path: '/'
+        // })
+        return {
+            data
+        }
     }
 
     async signUp(signUpDto:SignUpDto){

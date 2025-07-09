@@ -6,6 +6,7 @@ import NavBar from "./components/navbar";
 import NavbarContainer from "./components/NavbarContainer";
 import Providers from "./providers";
 import { getSession } from "./lib/session";
+import { Toaster } from "@/components/ui/sonner"
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -37,6 +38,7 @@ export default async function RootLayout({
           <NavbarContainer>
             <NavBar session={session}/>
           </NavbarContainer>
+          <Toaster />
           {children}
         </Providers>
       </body>
