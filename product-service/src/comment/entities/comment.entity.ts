@@ -18,10 +18,7 @@ export class Comment {
   authorId: string;
 
   @Field(() => User)
-  @ResolveField(() => User)
-  user(@Parent() comment: Comment): any {
-    return { __typename: 'User', id: comment.authorId.toString() }; // Chỉ trả ID để federation tự xử lý
-  }
+  user: User;
 
   @Field()
   createdAt: Date;

@@ -32,4 +32,36 @@ export class LikeResolver {
   removeLike(@Args('id', { type: () => Int }) id: number) {
     return this.likeService.remove(id);
   }
+
+
+  @Query(() => Int,{name:"getAll_PostLike"})
+  getAll_PostLike(
+    @Args("postId",{type:()=>Int}) postId: number
+  ){
+    return this.likeService.getAll_PostLike(postId)
+  }
+
+  @Query(()=> Boolean, {name:"check_User_LikedPost"})
+  check_User_LikedPost(
+    @Args("postId",{type:()=>Int}) postId: number,
+    @Args("userId",{type:()=>String}) userId: string
+  ){
+    return this.likeService.check_User_LikedPost({postId,userId})
+  }
+
+  @Mutation(() => Boolean, {name: "unLike_Post"})
+  unLike_Post(
+    @Args("postId",{type:()=>Int}) postId: number,
+    @Args("userId",{type:()=>String}) userId: string
+  ){
+    return this.likeService.unLike_Post({postId,userId})
+  }
+  
+  @Mutation(() => Boolean, {name: "like_Post"})
+  like_Post(
+    @Args("postId",{type:()=>Int}) postId: number,
+    @Args("userId",{type:()=>String}) userId: string
+  ){
+    return this.likeService.like_Post({postId,userId})
+  }
 }

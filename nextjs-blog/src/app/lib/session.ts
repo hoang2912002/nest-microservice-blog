@@ -23,7 +23,8 @@ export const createSession = async (payload: Session) => {
         secure:false,
         expires:expiredAt,
         sameSite:'lax',
-        path:'/'
+        path:'/',
+        domain:'.localhost'
     });
 }
 const secretKey = process.env.JWT_SECRET_KEY!
@@ -52,4 +53,7 @@ export async function getSession() {
 export async function deleteSession() {
     const deleteCookie = await (await cookies()).delete('session')
     
+}
+export async function getCookie() {
+    return (await cookies()).get("session")?.value
 }

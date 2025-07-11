@@ -2,13 +2,11 @@ import { Inject, Injectable, OnModuleInit, UnauthorizedException } from '@nestjs
 import { JwtService } from '@nestjs/jwt';
 import { ClientProxy } from '@nestjs/microservices';
 import { USER_SERVICE } from 'src/constants';
-import { SignInDto } from 'src/user/dto/signin.dto';
 import { UserService } from 'src/user/user.service';
 import { SignUpDto, VerifyTokenDto } from './dto/signUp.dto';
-import { firstValueFrom } from 'rxjs';
-import cookieParser from 'cookie-parser';
+import { firstValueFrom, lastValueFrom } from 'rxjs';
 import { Response } from 'express';
-import { error } from 'console';
+import { SignInGoogleDto } from './dto/signIn.dto';
 
 @Injectable()
 export class AuthService implements OnModuleInit {
@@ -59,14 +57,6 @@ export class AuthService implements OnModuleInit {
                 avatar
             }
         };
-        // const expiredAt = new Date(Date.now() + 1000 * 60 * 60); // 1 giờ
-        // res.cookie("session",JSON.stringify(data),{
-        //     httpOnly: true,
-        //     secure: true,
-        //     expires: expiredAt,
-        //     sameSite: 'lax',
-        //     path: '/'
-        // })
         return {
             data
         }
@@ -91,5 +81,10 @@ export class AuthService implements OnModuleInit {
             throw new UnauthorizedException("Không tìm thấy phiên đăng nhập!")
         }
         return cookie
+    }
+
+
+    async validateGoogleAccount(signInGoogleDto:SignInGoogleDto){
+        return await lastValueFrom(this.userServiceClient.send("checkUserGoogle",signInGoogleDto))
     }
 }

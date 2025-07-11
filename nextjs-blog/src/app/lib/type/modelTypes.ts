@@ -1,3 +1,16 @@
+export type Like = {
+    id: number;
+    userId:string;
+    postId:number;
+    createdAt:Date;
+    updatedAt:Date;
+}
+export type Tag = {
+    id: string;
+    name: string;
+    createdAt:Date;
+    updatedAt:Date;
+};
 export type Post = {
     id: number;
     title: string;
@@ -9,6 +22,8 @@ export type Post = {
     authorId: number;
     createdAt: Date;
     updatedAt: Date;
+    likes?: Like[];
+    tags?: Tag[];
 }
 
 export type User = {
@@ -19,4 +34,14 @@ export type User = {
     password: string | null;
     avatar:string;
     roleId:string
+}
+
+export type Comment = {
+    id: number;
+    content: string;
+    postId?: Post;
+    user: User;
+    authorId: string;
+    createdAt: Date;
+    updatedAt: Date;
 }

@@ -30,7 +30,6 @@ const NavBar = ({session}:Props) => {
     //     queryFn: async () =>
     //         await getSession(),
     // })
-    // console.log({data})
 
     useEffect(()=>{
         window.addEventListener("scroll",handleScroll)

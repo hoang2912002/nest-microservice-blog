@@ -77,7 +77,7 @@ const SignInForm = () => {
                                 Login
                             </Button>
                             <Button variant="outline" className="w-full">
-                                Login with Google
+                                <a href={`${process.env.BACKEND_URL}/auth/google/login`}>Login with Google</a>
                             </Button>
                         </div>
                     </form>

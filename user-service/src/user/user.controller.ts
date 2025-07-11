@@ -1,7 +1,7 @@
 import { Controller } from '@nestjs/common';
 import { MessagePattern, Payload } from '@nestjs/microservices';
 import { UserService } from './user.service';
-import { CreateUserDto, SignUpDto, VerifyTokenDto } from './dto/create-user.dto';
+import { CreateUserDto, SignInGoogleDto, SignUpDto, VerifyTokenDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 
 @Controller()
@@ -66,6 +66,11 @@ export class UserController {
   @MessagePattern('getUser_ById_FromPost')
   async getUser_ById_FromPost(@Payload() _id:string){
     return this.userService.getUser_ById_FromPost(_id)
+  }
+
+  @MessagePattern("checkUserGoogle")
+  async checkUserGoogle(@Payload() signInGoogleDto: SignInGoogleDto){
+    return this.userService.checkUserGoogle(signInGoogleDto)
   }
 
 }

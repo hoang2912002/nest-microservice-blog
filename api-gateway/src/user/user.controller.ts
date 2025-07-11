@@ -8,7 +8,9 @@ export class UserController {
   constructor(private readonly userService: UserService) {}
   @Public()
   @Get('getById')
-  findOne(@Query('id') id: string) {
+  findOne(
+    @Query('id') id: string
+  ) {
     return this.userService.findOne(id);
   }
 

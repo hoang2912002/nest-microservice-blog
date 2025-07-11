@@ -32,8 +32,20 @@ export class PostService {
     }
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} post`;
+  async findOne(id: number) {
+    try {
+      return await this.prismaService.post.findFirst({
+        where:{
+          id
+        },
+        include:{
+          tags:true
+        }
+      }
+      )
+    } catch (error) {
+      throw new Error('Lỗi máy chủ!')
+    }
   }
 
   update(id: number, updatePostInput: UpdatePostInput) {

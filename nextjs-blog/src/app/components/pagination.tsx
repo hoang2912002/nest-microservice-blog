@@ -10,6 +10,7 @@ import {
   PaginationPrevious,
 } from "@/components/ui/pagination"
 import { getPagesToShow } from "../lib/helper"
+import { cn } from "@/lib/utils"
 
 type Props = {
     totalPages:number,
@@ -27,7 +28,15 @@ export function PaginationPage({currentPage,totalPages,onPageChange}:Props) {
                 <PaginationItem>
                 <PaginationPrevious
                     href={`?page=${currentPage - 1}`}
-                    onClick={() => onPageChange?.(Math.max(currentPage - 1, 1))}
+                    onClick={(e) => {
+                        if(currentPage <=1)
+                        e.preventDefault();
+                        else onPageChange?.(currentPage - 1);
+                    }}
+                    className={
+                        cn("cursor-pointer", (currentPage <= 1) && "cursor-not-allowed")
+                    }
+                    // disabled={currentPage === 1}
                 />
                 </PaginationItem>
 
@@ -42,7 +51,7 @@ export function PaginationPage({currentPage,totalPages,onPageChange}:Props) {
                     <PaginationLink
                         href={`?page=${page}`}
                         isActive={page === currentPage}
-                        onClick={() => onPageChange?.(page)}
+                        onClick={() =>  onPageChange?.(page)}
                     >
                         {page}
                     </PaginationLink>
@@ -54,7 +63,14 @@ export function PaginationPage({currentPage,totalPages,onPageChange}:Props) {
                 <PaginationItem>
                 <PaginationNext
                     href={`?page=${currentPage + 1}`}
-                    onClick={() => onPageChange?.(Math.min(currentPage + 1, totalPages))}
+                    onClick={(e) => {
+                        if(currentPage === totalPages)
+                        e.preventDefault();
+                        onPageChange?.(Math.min(currentPage + 1, totalPages))}
+                    }
+                    className={
+                        cn("cursor-pointer", (totalPages === currentPage) && "cursor-not-allowed")
+                    }
                 />
                 </PaginationItem>
             </PaginationContent>

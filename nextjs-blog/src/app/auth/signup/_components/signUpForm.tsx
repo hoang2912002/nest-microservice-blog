@@ -26,7 +26,6 @@ const SignUpForm = () => {
     const [state, action] = useActionState(wrappedAction, undefined)
     useEffect(()=>{
         if (state?.message && state?.ok === true){
-            console.log(state)
             toast.success(state?.message)
             // router.push('/auth/verify');
 

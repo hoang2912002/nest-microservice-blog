@@ -43,6 +43,16 @@ async function main() {
                         authorId: faker.helpers.arrayElement(user.data) as string,
                     }))
                 }
+            },
+            likes:{
+                createMany:{
+                    //Do là 1 user chỉ được thả like 1 lần cho 1 bài post
+                    //nên là chỉ chọn 1 user duy nhất bằng uniqueArray
+                    data: faker.helpers
+                    .uniqueArray(() => faker.helpers.arrayElement(user.data) as string, 40)
+                    .map(userId => ({ userId }))
+
+                }
             }
         }
     })))

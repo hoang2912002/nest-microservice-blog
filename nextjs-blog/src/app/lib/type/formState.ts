@@ -51,3 +51,24 @@ export type SignUpFormState =
         ok?: boolean
     }
     | undefined
+
+
+export type CreateCommentFormState = 
+    |
+        {
+            data:{
+                postId?:string,
+                content?:string,
+                authorId?:string
+            };
+            errors?:{
+                name?:string[],
+                email?: string[],
+                gender?: string[],
+                avatar?: string[],
+                password?: string[]
+            };
+            message?:string
+            ok?: boolean
+        }
+    | undefined

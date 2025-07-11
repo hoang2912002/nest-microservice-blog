@@ -21,3 +21,10 @@ export const signUpSchema = z.object({
     .min(6)
     .trim(),
 })
+
+export const commentFormSchema = z.object({
+  postId: z.string().transform((val) => parseInt(val))
+    .refine((val) => !isNaN(val)),
+  content: z.string(),
+  authorId: z.string(),
+})

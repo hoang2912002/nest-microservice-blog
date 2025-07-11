@@ -1,5 +1,5 @@
 import { Optional } from "@nestjs/common"
-import { IsBoolean, IsEmail, IsString } from "class-validator"
+import { IsBoolean, IsEmail, IsOptional, IsString } from "class-validator"
 
 export class CreateUserDto {}
 
@@ -30,4 +30,28 @@ export class VerifyTokenDto {
 
     @IsString()
     codeId:string
+}
+
+export class SignInGoogleDto {
+    @IsString()
+    name:string;
+
+    @IsString()
+    accountType:string;
+
+    @IsBoolean()
+    gender:boolean
+    
+    @IsBoolean()
+    isActive:boolean
+
+
+    @IsOptional()
+    password?:string
+
+    @IsEmail()
+    email: string
+    
+    @IsOptional()
+    avatar?: string
 }

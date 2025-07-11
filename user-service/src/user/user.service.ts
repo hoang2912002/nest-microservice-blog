@@ -1,5 +1,5 @@
 import { BadRequestException, HttpStatus, Inject, Injectable, OnModuleInit} from '@nestjs/common';
-import { SignUpDto, VerifyTokenDto } from './dto/create-user.dto';
+import { SignInGoogleDto, SignUpDto, VerifyTokenDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { User } from './entities/user.entity';
 import { Model } from 'mongoose';
@@ -228,6 +228,29 @@ export class UserService {
       return user
     } catch (error) {
       return errorResponse(`Lỗi máy chủ!`, HttpStatus.INTERNAL_SERVER_ERROR)
+    }
+  }
+
+  async checkUserGoogle(signInGoogleDto: SignInGoogleDto){
+    const {name,accountType,gender,isActive,email,avatar} = signInGoogleDto
+    try {
+      const checkUser = await this.userModule.findOne({email}).lean()
+      if(checkUser){
+        const {password, ...user} = checkUser
+        return {
+          data: {...user}
+        }
+      }
+      const newUser =  await this.userModule.create({
+        ...signInGoogleDto,
+      })
+      const user = newUser.toObject();
+      const { password, ...rest } = user;
+      return {
+        data: { ...rest }
+      };
+    } catch (error) {
+      console.log(error)
     }
   }
 }
