@@ -5,6 +5,7 @@ import { Public, ResponseMessage } from 'src/decorator/customize';
 import { SignUpDto, VerifyTokenDto } from './dto/signUp.dto';
 import { GoogleOauthGuard } from './passport/google-oauth.guard';
 import { Response } from 'express';
+import { JwtAuthGuard } from './passport/jwt-auth.guard';
 @Controller('auth')
 export class AuthController {
     constructor(
@@ -54,8 +55,31 @@ export class AuthController {
     async googleAuthRedirect(@Req() req, @Res() res: Response) {
         const user = await this.authService.login(req?.user, res)
 
-        res.redirect(`http://localhost:3000/api/auth/google/callback?userId=${user.data?.user._id}
-            &name=${user.data?.user.name}&avatar=${user.data?.user.avatar}&accessToken=${user.data?.access_token}`)
+        // res.redirect(
+        //     `http://localhost:3000/api/auth/google/callback?
+        //     userId=${encodeURIComponent(user.data?.user._id)}
+        //     &name=${encodeURIComponent(user.data?.user.name)}
+        //     &avatar=${encodeURIComponent(user.data?.user.avatar)}
+        //     &accessToken=${user.data?.access_token}
+        //     &email=${encodeURIComponent(user.data?.user.email?.trim())}`)
+        res.redirect(
+            `http://localhost:3000/api/auth/google/callback?` +
+            `userId=${encodeURIComponent(user.data?.user._id?.trim())}` +
+            `&name=${encodeURIComponent(user.data?.user.name?.trim())}` +
+            `&avatar=${encodeURIComponent(user.data?.user.avatar?.trim())}` +
+            `&accessToken=${user.data?.access_token}` +
+            `&email=${encodeURIComponent(user.data?.user.email?.trim())}`
+            )
+
         return  req;
+    }
+
+
+    @UseGuards(JwtAuthGuard)
+    @Get("verify_google_token")
+    verify(@Request() req){
+        return {
+            data: req?.user
+        }
     }
 }

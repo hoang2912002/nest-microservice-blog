@@ -59,14 +59,15 @@ export type CreateCommentFormState =
             data:{
                 postId?:string,
                 content?:string,
-                authorId?:string
+                authorId?:string,
+                parentId?:string | null,
+                
             };
             errors?:{
-                name?:string[],
-                email?: string[],
-                gender?: string[],
-                avatar?: string[],
-                password?: string[]
+                postId?:string[],
+                content?:string[],
+                authorId?:string[],
+                parentId?:string[] | null[],
             };
             message?:string
             ok?: boolean

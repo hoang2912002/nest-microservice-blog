@@ -27,4 +27,8 @@ export const commentFormSchema = z.object({
     .refine((val) => !isNaN(val)),
   content: z.string(),
   authorId: z.string(),
+  userName: z.string(),
+  parentId: z.string()
+  .nullable()
+  .transform((val) => ([null, undefined].includes(val) ? null : parseInt(val)))
 })

@@ -20,6 +20,8 @@ function generateSlug(title:string):string{
 async function main() {
     
     const user =  await firstValueFrom(userClient.send("findAllArrId",{}))
+    const userArrName =  await firstValueFrom(userClient.send("findAllArrName",{}))
+    console.log(userArrName)
     const posts = Array.from({ length: 1000 }).map(() => {
         const title = faker.lorem.sentence();
         return {
@@ -31,31 +33,85 @@ async function main() {
             published: true,
         }
     });
-    await Promise.all(posts.map(async(post)=> await prisma.post.create({
-        data: {
-            ...post,
-            //trong quá trình tạo post đồng thời tạo 20 bản ghi liên kết vs post
-            //làm như này ko cần phải khai báo foreign key ở comments
-            comments:{
-                createMany:{
-                    data: Array.from({length:40}).map(()=>({
-                        content: faker.lorem.sentence(),
-                        authorId: faker.helpers.arrayElement(user.data) as string,
-                    }))
-                }
-            },
-            likes:{
-                createMany:{
-                    //Do là 1 user chỉ được thả like 1 lần cho 1 bài post
-                    //nên là chỉ chọn 1 user duy nhất bằng uniqueArray
-                    data: faker.helpers
-                    .uniqueArray(() => faker.helpers.arrayElement(user.data) as string, 40)
-                    .map(userId => ({ userId }))
+    // await Promise.all(posts.map(async(post)=> await prisma.post.create({
+    //     data: {
+    //         ...post,
+    //         //trong quá trình tạo post đồng thời tạo 20 bản ghi liên kết vs post
+    //         //làm như này ko cần phải khai báo foreign key ở comments
+    //         comments:{
+    //             createMany:{
+    //                 data: Array.from({length:40}).map(()=>({
+    //                     content: faker.lorem.sentence(),
+    //                     authorId: faker.helpers.arrayElement(user.data) as string,
+    //                 }))
+    //             }
+    //         },
+    //         likes:{
+    //             createMany:{
+    //                 //Do là 1 user chỉ được thả like 1 lần cho 1 bài post
+    //                 //nên là chỉ chọn 1 user duy nhất bằng uniqueArray
+    //                 data: faker.helpers
+    //                 .uniqueArray(() => faker.helpers.arrayElement(user.data) as string, 40)
+    //                 .map(userId => ({ userId }))
 
-                }
+    //             }
+    //         }
+    //     }
+    // })))
+    for (const post of posts) {
+        const postData =  await prisma.post.create({
+            data: {
+                ...post
             }
+        })
+        const parentComment = await Promise.all(
+            Array.from({length:40}).map(async ()=>{
+                const userData = faker.helpers.arrayElement(user.data) as string
+                const userInfo = userArrName.data.find((arr) => arr._id === userData);
+                return (
+
+                    prisma.comment.create({
+                        data:{
+                            content: faker.lorem.sentence(),
+                            authorId: userData,
+                            postId: postData.id,
+                            parentId: null,
+                            userName: userInfo?.name ?? null
+                        }
+                    })
+                )
+            }
+            )
+        )
+
+        for (let i = 0; i < 4; i++) {
+            const parent = faker.helpers.arrayElement(parentComment);
+            const userData = faker.helpers.arrayElement(user.data) as string
+            const userInfo = userArrName.data.find((arr) => arr._id === userData);
+            const check = await prisma.comment.create({
+                data:{
+                    content: faker.lorem.sentence(),
+                    authorId: userData,
+                    postId: postData.id,
+                    parentId: parent.id,  
+                    userName: userInfo?.name ?? null
+                }
+            })
+            console.log(check)
         }
-    })))
+        
+
+        const uniqueUserLike = faker.helpers
+            .uniqueArray(() => faker.helpers.arrayElement(user.data) as string, 40)
+        
+        await prisma.like.createMany({
+            data: uniqueUserLike.map((userId) => ({
+                userId,
+                postId: postData.id,
+            }))            
+        })
+
+    }
     console.log("Seeding Completed!")
 
 }

@@ -10,4 +10,10 @@ export class CreateCommentInput {
 
   @Field()
   authorId: string
+  
+  @Field()
+  userName: string
+
+  @Field(() => Int, {nullable:true})
+  parentId?: number
 }

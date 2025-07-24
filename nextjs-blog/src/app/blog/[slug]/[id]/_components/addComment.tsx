@@ -11,6 +11,7 @@ import { cn } from "@/lib/utils";
 import { QueryObserverResult, RefetchOptions } from "@tanstack/react-query";
 import { useActionState, useEffect, useState } from "react";
 import { toast } from "sonner";
+import { any } from "zod";
 
 type Props = {
     postId: number,
@@ -20,8 +21,12 @@ type Props = {
         comments: Comment;
         count: number;
     }, Error>>
+    defaultBtn: boolean
+    comment:Comment
+    parentComment:Comment
+    repComment_FromChild:boolean
 };
-const AddComment = ({postId,user,className,refetch}: Props) => {
+const AddComment = ({postId,user,className,refetch,defaultBtn, comment,parentComment,repComment_FromChild}: Props) => {
     const [state, action] = useActionState(createComment,undefined)
     const [openDialog,setOpenDialog] = useState(false)
     useEffect(() => {
@@ -37,9 +42,15 @@ const AddComment = ({postId,user,className,refetch}: Props) => {
     const handleOpenDialog = () => {
         setOpenDialog(prev => !prev)
     }
+
+    const displayUserName = repComment_FromChild ? `@${comment?.user?.name}` :`@${comment?.user?.name}`
+    const displayUserValue = repComment_FromChild ? comment?.user?.name : comment?.user?.name
   return (
     <>
-        <Button onClick={()=>handleOpenDialog()}>Leave Your Comment</Button>
+        {defaultBtn 
+        ? <Button onClick={()=>handleOpenDialog()} className="">Leave Your Comment</Button>
+        : <p onClick={()=>handleOpenDialog()} className="flex items-start text-sm text-justify text-gray-600">Comment</p>
+        }
         <Dialog open={openDialog} onOpenChange={setOpenDialog}>
         {/* <DialogTrigger asChild={openDialog}>
         </DialogTrigger> */}
@@ -52,6 +63,8 @@ const AddComment = ({postId,user,className,refetch}: Props) => {
                     <Textarea
                         className="border-none active:outline-none focus-visible:ring-0 shadow-none"
                         name="content"
+                        defaultValue={!defaultBtn ? displayUserName : ""}
+                        // onChange={(e)=>handleOnchangeTextArea(e,parentComment?.user?.name)}
                     />
                     {!!state?.errors?.content && (
                     <p className="text-red-500 animate-shake">
@@ -59,6 +72,8 @@ const AddComment = ({postId,user,className,refetch}: Props) => {
                     </p>
                     )}
                     <Input type="hidden" name="authorId" defaultValue={user._id}/>
+                    <Input type="hidden" name="parentId" defaultValue={!defaultBtn ? parentComment?.id : undefined}/>
+                    <Input type="hidden" name="userName" defaultValue={!defaultBtn ? displayUserValue : user.name}/>
 
                 </div>
                 <p className="border rounded-b-md p-2">

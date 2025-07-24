@@ -10,7 +10,7 @@ export const FetchGraphQL = async (query:string,variables={},isPublic=false) => 
         const cookie = await getCookie()
         headers["Authorization"] = `Bearer ${cookie}`;
     }
-    const res = await fetch(`${process.env.BACKEND_URL}/graphql`,{
+    const res = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/graphql`,{
         method:'POST',
         headers,
         credentials: 'include',

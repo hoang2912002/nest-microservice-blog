@@ -14,6 +14,7 @@ const PostPage = async ({params}:Props) => {
     const id =  (await params).id
     const post = await getPostById(+id)
     const session = await getSession()
+    console.log(session)
     const window = new JSDOM('').window;
     const DOMPurify = createDOMPurify(window);
     return (

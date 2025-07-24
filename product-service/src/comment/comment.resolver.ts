@@ -58,6 +58,11 @@ export class CommentResolver {
     return this.userService.getUserById(comment.authorId);
   }
   
+  @ResolveField(() => Comment)
+  async replies(@Parent() comment: Comment) {
+    return await this.commentService.findReplies(comment.id);
+  }
+  
 
   @Mutation(()=> Comment,{name:"save_PostComment"})
   async save_PostComment(@Args("createCommentInput") createCommentInput: CreateCommentInput){

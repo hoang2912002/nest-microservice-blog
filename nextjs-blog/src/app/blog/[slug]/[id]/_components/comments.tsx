@@ -35,10 +35,23 @@ const Comments = ({postId,user}:Props) => {
     return (
         <div className="p-2 rounded-md shadow-md">
             <h6 className="text-lg text-slate-700">Comment</h6>
-            {!!user && <AddComment postId={postId} user={user} refetch={refetch}/>}
+            {!!user && <AddComment postId={postId} user={user} refetch={refetch} defaultBtn={true}/>}
             <div className="flex flex-col gap-2 pl-4">
-                {Array.isArray(data?.comments) && data.comments.map((comment)=>
-                    <CommentCard comment={comment} key={comment.id}></CommentCard>
+                {Array.isArray(data?.comments) && data.comments.map((comment)=> {
+                    return (
+                        <div key={comment.id}>
+
+                            <CommentCard postId={postId} refetch={refetch} user={user} comment={comment} key={comment.id} parentComment={comment} repComment_FromChild={false} />
+                            {Array.isArray(comment?.replies) && comment.replies.length > 0 && (
+                                <div className="ml-10 mt-2">
+                                    {comment.replies.map((reply)  => (
+                                        <CommentCard postId={postId} refetch={refetch} user={user} comment={reply} key={reply.id} replyComment={true} parentComment={comment} repComment_FromChild={true}/>
+                                    ))}
+                                </div>
+                            )}
+                        </div>
+                    )
+                }
                 )}
             </div>
             {

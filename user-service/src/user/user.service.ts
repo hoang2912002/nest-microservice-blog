@@ -39,6 +39,11 @@ export class UserService {
     const ids = user.map(u => u._id.toString());
     return successResponse(ids, 'Danh sách thông tin _id người dùng!');
   }
+  
+  async findAllArrName() {
+    const user =  await this.userModule.find().select('_id name');
+    return successResponse(user, 'Danh sách thông tin _id người dùng!');
+  }
 
   async findOne(id: string) {
     const data = await this.userModule.findById(id)

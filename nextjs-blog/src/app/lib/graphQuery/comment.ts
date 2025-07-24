@@ -7,10 +7,23 @@ export const GET_ALL_POST_COMMENT = gql`
             content
             authorId
             createdAt
-
+            userName
             user{
                 name
                 avatar
+                _id
+            }
+
+            replies{
+                id
+                content
+                createdAt
+                userName
+                user{
+                    name
+                    avatar
+                    _id
+                }
             }
         }
         countAll_PostComment(postId:$postId)    

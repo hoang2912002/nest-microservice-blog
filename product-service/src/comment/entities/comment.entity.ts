@@ -16,9 +16,22 @@ export class Comment {
 
   @Field()
   authorId: string;
+  
+  @Field({ nullable: true })
+  userName: string;
+
 
   @Field(() => User)
   user: User;
+
+  @Field(() => Int, { nullable: true })
+  parentId?: number
+
+  @Field(() => Comment, { nullable: true })
+  parent?: Comment;
+
+  @Field(() => [Comment], { nullable: true })
+  replies?: Comment[];
 
   @Field()
   createdAt: Date;

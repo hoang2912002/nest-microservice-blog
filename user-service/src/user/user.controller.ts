@@ -17,6 +17,11 @@ export class UserController {
   async findAllArrId() {
     return await this.userService.findAllArrId();
   }
+  
+  @MessagePattern('findAllArrName')
+  async findAllArrName() {
+    return await this.userService.findAllArrName();
+  }
 
   @MessagePattern('findOneUser')
   findOne(@Payload() id: string) {

@@ -3,10 +3,13 @@ import { Comment } from 'src/comment/entities/comment.entity';
 import { Post } from 'src/post/entities/post.entity';
 
 @ObjectType()
-@Directive('@key(fields: "id")')
+@Directive('@key(fields: "_id")')
 export class User {
     @Field()
     id: string;
+    
+    @Field()
+    _id: string;
 
     @Field()
     name:string

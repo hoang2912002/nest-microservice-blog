@@ -44,4 +44,6 @@ export type Comment = {
     authorId: string;
     createdAt: Date;
     updatedAt: Date;
+    parentId: number;
+    userName: string
 }

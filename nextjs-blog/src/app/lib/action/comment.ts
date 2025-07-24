@@ -1,7 +1,7 @@
 'use server'
 import { print } from "graphql"
 import { FetchGraphQL } from "../api/fetchGraphAPI"
-import { convertTakeSkip } from "../helper"
+import { convertTakeSkip, escapeRegex } from "../helper"
 import { GET_ALL_POST_COMMENT, GET_ALL_POST_LIKE, LIKE_POST, SAVE_POST_COMMENT, UNLIKE_POST } from "../graphQuery/comment"
 import { Comment } from "../type/modelTypes"
 import { number } from "zod"
@@ -68,10 +68,16 @@ export const createComment = async (
     const validate = commentFormSchema.safeParse(
         Object.fromEntries(formData.entries())
     )
-
+    // const cleanedText = validate.data?.content.replace(new RegExp(`^@${validate.data?.userName}\\s*`), "");
+    let cleanedText = validate.data?.content;
+    const checkUserName = `@${validate.data?.userName}`
+    if (validate.data?.content.startsWith(checkUserName)) {
+        cleanedText = validate.data?.content.slice(validate.data?.userName.length + 1).trimStart(); // +1 vì có ký tự @
+    }
     const data = await FetchGraphQL(print(SAVE_POST_COMMENT),{
         input:{
-            ...validate.data
+            ...validate.data,
+            content:cleanedText
         }
     })
     if(!data.success) 
