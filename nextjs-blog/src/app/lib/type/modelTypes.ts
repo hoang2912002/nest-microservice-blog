@@ -47,3 +47,19 @@ export type Comment = {
     parentId: number;
     userName: string
 }
+
+export type Notification = {
+    id:number;
+    type:string;
+    content:string;
+    senderId?:string;
+    sender?:User;
+    receiverId?:string;
+    receiver?: User;
+    postId?: number;
+    post?: Post;
+    commentId?: number
+    comment?: Comment
+    isRead: boolean
+
+}

@@ -44,7 +44,6 @@ export async function getSession() {
         return payload.user as Session
         
     } catch (error) {
-        console.log(error)
         redirect("/auth/signin")
     }
 

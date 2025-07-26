@@ -20,7 +20,7 @@ type Props = {
 const CommentCard = ({comment,replyComment,parentComment,refetch, postId, user,repComment_FromChild}: Props) => {
   return (
     <>
-      <div className="p-4 bg-white rounded-2xl shadow-sm border border-gray-100 space-y-3 hover:shadow-md transition">
+      <div  id={`comment-${comment.id}`} className="p-4 bg-white rounded-2xl shadow-sm border border-gray-100 space-y-3 hover:shadow-md transition">
         <div className="flex items-center gap-3 text-gray-700">
           <Avatar className="border border-gray-300 w-10 h-10">
             <AvatarImage src={comment.user.avatar} />

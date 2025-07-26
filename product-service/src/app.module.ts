@@ -6,12 +6,13 @@ import { ProductModule } from './product/product.module';
 import { ClientProxyModule } from './clientModule';
 import { GraphQLModule } from '@nestjs/graphql';
 import { ApolloDriver, ApolloFederationDriver } from '@nestjs/apollo';
-import { join } from 'path';
 import { UserModule } from './user/user.module';
 import { PostModule } from './post/post.module';
 import { CommentModule } from './comment/comment.module';
 import { TagModule } from './tag/tag.module';
 import { LikeModule } from './like/like.module';
+import { RedisModule } from './redis/redis.module';
+import { NotificationModule } from './notification/notification.module';
 
 @Module({
   imports: [
@@ -31,12 +32,19 @@ import { LikeModule } from './like/like.module';
       autoSchemaFile: {
         federation: 2,
       },
+      context: ({ req }) => {
+        const userHeader = req.headers['x-user'];
+        const user = userHeader ? JSON.parse(userHeader as string) : null;
+        return { user }; // gắn vào context để các resolver dùng
+      },
     }),
     UserModule,
     PostModule,
     CommentModule,
     TagModule,
-    LikeModule
+    LikeModule,
+    RedisModule,
+    NotificationModule
     
   ],
   controllers: [AppController],

@@ -1,7 +1,12 @@
-import { Injectable } from '@nestjs/common';
+import { Inject, Injectable } from '@nestjs/common';
 import { CreateCommentInput } from './dto/create-comment.input';
 import { UpdateCommentInput } from './dto/update-comment.input';
 import { PrismaService } from 'src/prisma/prisma.service';
+import { ClientProxy } from '@nestjs/microservices';
+import { SOCKET_SERVICE, USER_SERVICE } from 'src/constants';
+import { lastValueFrom } from 'rxjs';
+import { da } from '@faker-js/faker/.';
+import { RedisService } from 'src/redis/redis.service';
 async function buildCommentTree(comments: any[], parentId: number | null = null): Promise<any[]> {
   const result = await Promise.all(
     comments
@@ -17,7 +22,10 @@ async function buildCommentTree(comments: any[], parentId: number | null = null)
 @Injectable()
 export class CommentService {
   constructor(
-    private readonly prismaService: PrismaService
+    private readonly prismaService: PrismaService,
+    @Inject(SOCKET_SERVICE) private readonly socketClient: ClientProxy,
+    private readonly redisClient: RedisService,
+
   ){}
   create(createCommentInput: CreateCommentInput) {
     return 'This action adds a new comment';
@@ -74,8 +82,34 @@ export class CommentService {
     })
   }
 
-  async save_PostComment(createCommentInput: CreateCommentInput){
+  async save_PostComment(
+    {
+      createCommentInput,
+      token
+    }:{
+      createCommentInput: CreateCommentInput,
+      token: any
+    }){
     const {postId,content,authorId,parentId,userName} = createCommentInput
+    //Tạo notification
+    const type = parentId ? "reply_comment" : "comment";
+    let receiverId = "";
+    let authorName = token ? token?.user?.name : authorId
+    const senderId = authorId
+    if(parentId){
+      const parentComment = await this.prismaService.comment.findUnique({
+        where: { id: parentId },
+        select: { 
+          authorId: true,
+        },
+      });
+      if(parentComment && parentComment.authorId !== authorId){
+        receiverId = parentComment.authorId
+      }
+    }
+    else{
+      receiverId = authorId
+    }
     const data  = {
       content,
       authorId,
@@ -93,9 +127,27 @@ export class CommentService {
         },
       };
     }
-    return await this.prismaService.comment.create({
+    const createComment =  await this.prismaService.comment.create({
       data
     })
+    if(parentId){
+      await this.prismaService.notification.create({
+        data: {
+          type,
+          content: `${authorName} replied to your comment`,
+          senderId,
+          receiverId,
+          postId,
+          isRead:false,
+          commentId: createComment.id,
+        },
+      });
+      await this.redisClient.publish(
+        'comment_notification',
+        JSON.stringify({ senderId, content })
+      )
+    }
+    return createComment
   }
 
 

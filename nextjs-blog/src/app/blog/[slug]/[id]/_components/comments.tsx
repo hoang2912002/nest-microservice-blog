@@ -4,14 +4,13 @@ import { PaginationPage } from "@/app/components/pagination";
 import { getPostComment } from "@/app/lib/action/comment";
 import { SessionUser } from "@/app/lib/session";
 import { DEFAULT_PAGESIZE } from "@/constants";
-import { useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import { skip } from "node:test";
-import { use, useState } from "react";
+import { use, useEffect, useState } from "react";
 import CommentCard from "./commentCard";
 import CommentCardSkeleton from "./commentCardSkeleton";
 import { useSearchParams } from "next/navigation";
 import AddComment from "./addComment";
-
 type Props = {
     postId: number,
     user?: SessionUser,
@@ -21,6 +20,7 @@ const Comments = ({postId,user}:Props) => {
     // const [page, setPage] = useState(1)
     const searchParams = useSearchParams()
     const page = Number(searchParams.get('page') || 0)
+    const commentId = String(searchParams.get('commentId') || "")
     const {data, isLoading, refetch} = useQuery({
         queryKey: ['GET_POST_COMMENT',postId,page],
         queryFn: async() => {
@@ -31,6 +31,19 @@ const Comments = ({postId,user}:Props) => {
             })
         }
     })
+    useEffect(()=>{
+        if (commentId) {
+            const element = document.querySelector(`#comment-${commentId}`);
+            if (element) {
+            element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            // Optionally highlight it
+            element.classList.add('shadow-lg', 'bg-yellow-100', 'transition');
+            setTimeout(() => {
+                element.classList.remove('bg-yellow-100', 'shadow-lg');
+            }, 3000);
+            }
+        }
+    },[commentId])
     const totalPage = data?.countAllComment ? Math.ceil(data?.countAllComment / DEFAULT_PAGESIZE) : 1
     return (
         <div className="p-2 rounded-md shadow-md">

@@ -14,6 +14,9 @@ export class Comment {
   @Field(()=>Post)
   postId: Post;
 
+  @Field(() => Post)
+  post: Post;
+
   @Field()
   authorId: string;
   

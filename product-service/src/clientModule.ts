@@ -2,22 +2,34 @@
 import { Module } from '@nestjs/common';
 import { ClientsModule, Transport } from '@nestjs/microservices';
 import { ConfigModule, ConfigService } from '@nestjs/config';
-import { USER_SERVICE } from './constants';
+import { SOCKET_SERVICE, USER_SERVICE } from './constants';
 
 @Module({
   imports: [
     ClientsModule.registerAsync([
         {
-        name: USER_SERVICE,
-        imports: [ConfigModule],
-        inject: [ConfigService],
-        useFactory:(configService: ConfigService) => ({
-            transport: Transport.REDIS,
-            options: {
-            host: configService.get<string>('REDIS_HOST'),
-            port: configService.get<number>('REDIS_PORT') || 6379,
-            },
-        }),
+          name: USER_SERVICE,
+          imports: [ConfigModule],
+          inject: [ConfigService],
+          useFactory:(configService: ConfigService) => ({
+              transport: Transport.REDIS,
+              options: {
+              host: configService.get<string>('REDIS_HOST'),
+              port: configService.get<number>('REDIS_PORT') || 6379,
+              },
+          }),
+        },
+        {
+          name: SOCKET_SERVICE,
+          imports: [ConfigModule],
+          inject: [ConfigService],
+          useFactory:(configService: ConfigService) => ({
+              transport: Transport.REDIS,
+              options: {
+              host: configService.get<string>('REDIS_HOST'),
+              port: configService.get<number>('REDIS_PORT') || 6379,
+              },
+          }),
         },
     ]),
   ],

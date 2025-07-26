@@ -15,6 +15,7 @@ import { useEffect, useState } from "react"
 import { getSession, SessionUser } from "../lib/session"
 import Profile from "./profile"
 import SignInPanel from "./signIn_Out"
+import Notification from "./notification"
 
 type Props = {
     session: SessionUser
@@ -70,6 +71,10 @@ const NavBar = ({session}:Props) => {
                                 <Profile user={session}/>:
                                 <SignInPanel/>
                             }
+                        {!!session ? 
+                            <Notification user={session}/>:
+                            ""
+                        }
                     </NavigationMenuList>
                 </NavigationMenu>
             </div>

@@ -25,7 +25,7 @@ model Post{
   comments Comment[]
   tags Tag[] @relation("PostTags")
   likes Like[]
-  // notifications Notification[]
+  notifications Notification[]
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
@@ -41,9 +41,7 @@ model Comment{
   parent Comment? @relation("CommentReply",fields: [parentId],references: [id])
   replies Comment[] @relation("CommentReply")
   userName String?
-  // notificationId Int
-  // notification Notification @relation(fields: [notificationId],references: [id])
-
+  notification Notification[]
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
@@ -73,9 +71,10 @@ model Notification{
   content String?
   senderId String
   receiverId String
-  // postId Int
-  // post Post @relation(fields: [postId],references: [id])
-  // comments Comment[]
+  postId Int
+  post Post @relation(fields: [postId],references: [id])
+  commentId Int?
+  comment   Comment? @relation(fields: [commentId], references: [id])
   isRead Boolean
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt

@@ -4,9 +4,10 @@ import { CommentResolver } from './comment.resolver';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { UserService } from 'src/user/user.service';
 import { ClientProxyModule } from 'src/clientModule';
+import { RedisModule } from 'src/redis/redis.module';
 
 @Module({
-  imports:[ClientProxyModule],
+  imports:[ClientProxyModule,RedisModule],
   providers: [CommentResolver, CommentService,PrismaService,UserService],
 })
 export class CommentModule {}

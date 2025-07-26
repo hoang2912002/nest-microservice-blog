@@ -1,4 +1,4 @@
-import { Resolver, Query, Mutation, Args, Int, ResolveField, Parent } from '@nestjs/graphql';
+import { Resolver, Query, Mutation, Args, Int, ResolveField, Parent, Context } from '@nestjs/graphql';
 import { CommentService } from './comment.service';
 import { Comment } from './entities/comment.entity';
 import { CreateCommentInput } from './dto/create-comment.input';
@@ -63,9 +63,12 @@ export class CommentResolver {
     return await this.commentService.findReplies(comment.id);
   }
   
-
   @Mutation(()=> Comment,{name:"save_PostComment"})
-  async save_PostComment(@Args("createCommentInput") createCommentInput: CreateCommentInput){
-    return await this.commentService.save_PostComment(createCommentInput)
+  async save_PostComment(
+    @Args("createCommentInput") createCommentInput: CreateCommentInput,
+    @Context('user') token: string
+  ){
+    
+    return await this.commentService.save_PostComment({createCommentInput,token})
   }
 }

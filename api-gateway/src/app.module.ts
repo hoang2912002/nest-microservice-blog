@@ -10,7 +10,7 @@ import { JwtAuthGuard } from './auth/passport/jwt-auth.guard';
 import { GraphQLModule } from '@nestjs/graphql';
 import { ApolloDriver, ApolloDriverConfig, ApolloGatewayDriver, ApolloGatewayDriverConfig } from '@nestjs/apollo';
 import { JwtService } from '@nestjs/jwt';
-import { IntrospectAndCompose } from '@apollo/gateway';
+import { IntrospectAndCompose, RemoteGraphQLDataSource } from '@apollo/gateway';
 import  * as dayjs from 'dayjs';
 
 @Module({
@@ -33,9 +33,8 @@ import  * as dayjs from 'dayjs';
           context: ({ req }) => {
             const token = req.headers.authorization?.split(' ')[1];
             const isPublic = req.body.isPublic
-            if(isPublic) return true
+            if (isPublic) return { isPublic };
             if (!token) throw new UnauthorizedException('Missing token');
-
             try {
               const jwt = new JwtService({
                 secret: configService.get<string>('JWT_SECRET_KEY'),
@@ -45,7 +44,7 @@ import  * as dayjs from 'dayjs';
               if(isExpired){
                 throw new UnauthorizedException('Token expired');
               }
-              return { user };
+              return { user, isPublic };
             } catch (err) {
               throw new UnauthorizedException('Invalid token');
             }
@@ -59,7 +58,26 @@ import  * as dayjs from 'dayjs';
                 url: configService.get<string>('PRODUCT_URL_GRAPHQL'),
               },
             ],
-          })
+          }),
+          buildService: ({ name, url }) => {
+            //mục đích ở đây là để customize http response cho subgraph
+            return new RemoteGraphQLDataSource({
+              //RemoteGraphQLDataSource có thể override các lifecycle hook
+              //willSendRequest là hook trc khi gửi request
+              //didReceiveResponse là hook sau khi nhận response
+              //didEncounterError	Hook khi có lỗi từ subgraph
+              url,
+              willSendRequest({ request, context }) {
+                if (!context?.isPublic && context?.user) {
+                  const userString = JSON.stringify(context.user);
+                  request.http?.headers.set('x-user', userString);
+                }
+              },
+              didEncounterError(error, fetchRequest, fetchResponse, context) {
+                throw error;
+              }
+            });
+          }
         },
       }),
       inject: [ConfigService],
@@ -74,4 +92,5 @@ import  * as dayjs from 'dayjs';
     },
   ],
 })
+
 export class AppModule {}
