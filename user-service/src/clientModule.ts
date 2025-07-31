@@ -1,7 +1,7 @@
 // src/client-proxy/client-proxy.module.ts
 import { Module } from '@nestjs/common';
 import { ClientsModule, Transport } from '@nestjs/microservices';
-import { PRODUCT_SERVICE } from './constants';
+import { PRODUCT_SERVICE, SOCKET_SERVICE } from './constants';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 
 @Module({
@@ -9,6 +9,20 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
     ClientsModule.registerAsync([
         {
         name: PRODUCT_SERVICE,
+        imports: [ConfigModule],
+        inject: [ConfigService],
+        useFactory:(configService: ConfigService) => ({
+            transport: Transport.REDIS,
+            options: {
+            host: configService.get<string>('REDIS_HOST'),
+            port: configService.get<number>('REDIS_PORT') || 6379,
+            },
+        }),
+        },
+    ]),
+    ClientsModule.registerAsync([
+        {
+        name: SOCKET_SERVICE,
         imports: [ConfigModule],
         inject: [ConfigService],
         useFactory:(configService: ConfigService) => ({

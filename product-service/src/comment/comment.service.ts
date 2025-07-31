@@ -108,7 +108,15 @@ export class CommentService {
       }
     }
     else{
-      receiverId = authorId
+      const dataPost = await this.prismaService.post.findUnique({
+        where:{
+          id: postId
+        },
+        select:{
+          authorId:true
+        }
+      })
+      receiverId = dataPost ? dataPost.authorId : authorId
     }
     const data  = {
       content,
@@ -130,11 +138,13 @@ export class CommentService {
     const createComment =  await this.prismaService.comment.create({
       data
     })
-    if(parentId){
+    const contentNotification = parentId ? `${authorName} replied to your comment` : `${authorName} commented to your post`
+    
+    if(parentId || senderId !== receiverId){
       await this.prismaService.notification.create({
         data: {
           type,
-          content: `${authorName} replied to your comment`,
+          content: contentNotification,
           senderId,
           receiverId,
           postId,

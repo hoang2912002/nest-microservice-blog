@@ -38,9 +38,12 @@ const Notification = ({ user }: Props) => {
             })
         }
     })
-    useSocket(user._id, (data) => {
-        refetch()
-    });
+    useSocket(user._id, {
+        onNotification: (data) => {
+            console.log("🔔 Notification received", data);
+            refetch();
+        },
+    },'notification');
     const handleChange_TypeNotification = (type: boolean) => {
         setIsRead_Notification(type)
         setTimeout(()=>{
@@ -140,11 +143,13 @@ const Notification = ({ user }: Props) => {
                                                 <p className="text-sm text-gray-500">Không có thông báo nào.</p>
                                             ) : (
                                                 data?.getAllNotification?.map((noti) => (
-                                                    <Link
-                                                        key={`notRead-${noti.id}`}
-                                                        href={`/blog/${noti?.post?.slug}/${noti?.post?.id}?commentId=${noti?.commentId}&notificationId=${noti?.id}`}
+                                                    <div
+                                                        key={`all-${noti.id}`}
+                                                        onClick={()=>handleOnclick(noti)}
+                                                        // href={`/blog/${noti?.post?.slug}/${noti?.post?.id}?commentId=${noti?.commentId}&notificationId=${noti?.id}`}
                                                         className="flex items-start gap-3 p-2 rounded-md hover:bg-gray-100 transition"
                                                     >
+                                                   
                                                         <Image
                                                             src={noti.sender.avatar}
                                                             alt="Avatar"
@@ -160,7 +165,7 @@ const Notification = ({ user }: Props) => {
                                                                 {/* {formatDistanceToNow(new Date(noti.createdAt), { addSuffix: true })} */}
                                                             </span>
                                                         </div>
-                                                    </Link>
+                                                    </div>
                                                 ))
                                             )}
                                         </div>
