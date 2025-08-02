@@ -55,4 +55,16 @@ export class PostService {
   remove(id: number) {
     return `This action removes a #${id} post`;
   }
+
+  //Admin
+  async findAllByAdmin({skip,take}:{skip:number,take:number}) {
+    try {
+      return await this.prismaService.post.findMany({
+        skip,
+        take,
+      })
+    } catch (error) {
+      throw new Error('Lỗi máy chủ!',error)
+    }
+  }
 }

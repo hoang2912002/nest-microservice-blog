@@ -30,6 +30,7 @@ export class PostResolver {
   async countAllPost(){
     return await this.postService.countAllPost()
   }
+  
 
   @ResolveField(() => User)
   async user(@Parent() post: Post): Promise<User> {
@@ -51,5 +52,15 @@ export class PostResolver {
   @Mutation(() => Post)
   removePost(@Args('id', { type: () => Int }) id: number) {
     return this.postService.remove(id);
+  }
+
+
+  //Admin
+  @Query(() => [Post], {name: 'getAllPost_ByAdmin'})
+  async findAllByAdmin(
+    @Args("skip", {type:()=> Int}) skip: number,
+    @Args('take',{type:()=>Int}) take: number,
+  ){
+    return await this.postService.findAllByAdmin({skip,take});
   }
 }
