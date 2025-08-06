@@ -2,9 +2,11 @@ import { Resolver, Query, Mutation, Args, Int, ResolveField, Parent } from '@nes
 import { PostService } from './post.service';
 import { Post } from './entities/post.entity';
 import { CreatePostInput } from './dto/create-post.input';
-import { UpdatePostInput } from './dto/update-post.input';
+import { UpdatePostDTO, UpdatePostInput, UploadChunkDto } from './dto/update-post.input';
 import { User } from 'src/user/entities/user.entity';
 import { UserService } from 'src/user/user.service';
+import { Body, UploadedFile, UseInterceptors } from '@nestjs/common';
+import { FileInterceptor } from '@nestjs/platform-express';
 
 @Resolver(() => Post)
 export class PostResolver {
@@ -44,10 +46,10 @@ export class PostResolver {
     return this.postService.findOne(id);
   }
 
-  @Mutation(() => Post)
-  updatePost(@Args('updatePostInput') updatePostInput: UpdatePostInput) {
-    return this.postService.update(updatePostInput.id, updatePostInput);
-  }
+  // @Mutation(() => Post)
+  // updatePost(@Args('updatePostInput') updatePostInput: UpdatePostInput) {
+  //   return this.postService.update(updatePostInput.id, updatePostInput);
+  // }
 
   @Mutation(() => Post)
   removePost(@Args('id', { type: () => Int }) id: number) {
@@ -62,5 +64,29 @@ export class PostResolver {
     @Args('take',{type:()=>Int}) take: number,
   ){
     return await this.postService.findAllByAdmin({skip,take});
+  }
+
+  @Mutation(() => Boolean, {name: 'uploadFileChunkPost'})
+  async uploadFileChunkPost(
+    @Args('file',{type:()=>String}) file: string,
+    @Args('folderName',{type:()=>String}) folderName: string,
+    @Args('fileName',{type:()=>String}) fileName: string
+  ){
+    return await this.postService.uploadFileChunkPost(file,folderName,fileName)
+  }
+
+  
+  @Query(() => String, {name: 'getMergeFile'})
+  async getMergeFile(
+    @Args("folderName",{type:()=> String}) folderName: string
+  ){
+    return await this.postService.mergeFiles(folderName)
+  }
+
+  @Mutation(() => Post, {name: 'update'})
+  async update(
+    @Args('updatePostDTO') updatePostDTO: UpdatePostDTO
+  ){
+    return this.postService.update(updatePostDTO)
   }
 }

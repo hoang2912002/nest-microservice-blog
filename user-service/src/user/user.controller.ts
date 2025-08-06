@@ -78,4 +78,11 @@ export class UserController {
     return this.userService.checkUserGoogle(signInGoogleDto)
   }
 
+
+  //-----------------Admin---------------------------------
+  @MessagePattern("getAllAuthor")
+  async getAllAuthor(){
+    return await this.userService.getAllAuthor()
+  }
+
 }

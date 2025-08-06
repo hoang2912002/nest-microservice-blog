@@ -33,6 +33,12 @@ interface CustomColumnDef<TData, TValue> extends ColumnDef<TData, TValue> {
     enableSorting?: boolean
 }
 
+interface DialogState {
+  edit: boolean;
+  delete: boolean;
+  view: boolean;
+}
+
 interface DataTableProps<TData, TValue> {
     columns: CustomColumnDef<TData, TValue>[]
     data: TData[],
@@ -45,7 +51,8 @@ interface DataTableProps<TData, TValue> {
     }, Error>>
     isLoading?: boolean,
     currentPage: number
-    pageSize: number
+    pageSize: number,
+    handleShowDialog?: (key: keyof DialogState, value: boolean, dataResponse: any) => void;
 }
 
 const TableShadcn = <TData, TValue>({
@@ -57,7 +64,8 @@ const TableShadcn = <TData, TValue>({
     refetch,
     isLoading,
     currentPage,
-    pageSize
+    pageSize, 
+    handleShowDialog
 
 }: DataTableProps<TData, TValue>) => {
     const [sorting, setSorting] = useState<SortingState>([])
@@ -133,16 +141,16 @@ const TableShadcn = <TData, TValue>({
                                 </Button>
                             </DropdownMenuTrigger>
                             <DropdownMenuContent align="end">
-                                <DropdownMenuItem onClick={() => console.log("Copy", item)}>
+                                <DropdownMenuItem onClick={() => handleShowDialog?.('view', true, item)}>
                                     View
                                 </DropdownMenuItem>
-                                <DropdownMenuItem onClick={() => console.log("Edit", item)}>
+                                <DropdownMenuItem onClick={() => handleShowDialog?.('edit',true, item)}>
                                     Edit
                                 </DropdownMenuItem>
                                 <DropdownMenuSeparator />
                                 <DropdownMenuItem
                                     className="text-red-500"
-                                    onClick={() => console.log("Delete", item)}
+                                    onClick={() => handleShowDialog?.('delete',true, item)}
                                 >
                                     Delete
                                 </DropdownMenuItem>

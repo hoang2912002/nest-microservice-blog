@@ -25,4 +25,9 @@ export class UserController {
   async remove(@Param('_id') _id: string){
     return await this.userService.deleteUserById(_id)
   }
+
+  @Get('getAllAuthor')
+  getAllAuthor(){
+    return this.userService.getAllAuthor()
+  }
 }

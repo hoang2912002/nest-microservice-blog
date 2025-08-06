@@ -1,5 +1,8 @@
 import { DEFAULT_PAGE, DEFAULT_PAGESIZE } from "@/constant";
 import { HttpStatus } from "./httpStatus";
+import { Blob } from "buffer";
+import { uploadChunk } from "../lib/action/post";
+import { v4 as uuidv4 } from 'uuid';
 
 export const nameMap: Record<string, string> = {
     like: 'Like',
@@ -91,3 +94,68 @@ export const convertTakeSkip = ({
         take: pageSize ?? DEFAULT_PAGESIZE
     }
 }
+
+// export const handleChunkFile = async (
+//   file?: File,
+//   chunkSize = 1024 * 1024,
+// ) => {
+//     if (!file) return
+//     const chunks = [], chunkPromise = [];
+//     let startPos = 0;
+//     while(startPos < file.size){
+//         chunks.push(file.slice(startPos, startPos + chunkSize))
+//         startPos += chunkSize;
+//     }
+
+//     if(!chunks.length){
+//         return
+//     }
+//     const fileNameRandom = Math.random().toString().slice(2,7)
+//     chunks.map((ck, index) => {
+//         const data = new FormData();
+//         const nameFileFinal = fileNameRandom + '-' + file.name + '-' + index
+//         data.set("name", nameFileFinal);
+
+//         data.append('files', ck)
+//         chunkPromise.push(uploadChunk(data))
+//     })
+//     // call merge api
+//     // await Promise.all(chunkPromise);
+// }
+
+export const handleChunkFile = async (
+  file?: File,
+  chunkSize = 128 * 1024,
+) => {
+  if (!file) return;
+
+  const chunkPromise = [];
+  let start = 0;
+  const totalChunks = Math.ceil(file.size / chunkSize);
+//   const fileNameBase = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}-${file.name}`;
+  const fileNameBase = `${Date.now()}-${file.name}`;
+
+  for (let i = 0; i < totalChunks; i++) {
+    const chunk = file.slice(start, start + chunkSize);
+    start += chunkSize;
+
+    // Gửi từng chunk như 1 file riêng với tên tùy chỉnh
+    // const chunkFile = new File([chunk], `${fileNameBase}-part-${i}`, {
+    //   type: file.type,
+    // });
+    const base64 = await fileToBase64(chunk)
+    chunkPromise.push(uploadChunk(base64,fileNameBase,i.toString()));
+  }
+  await Promise.all(chunkPromise);
+  return fileNameBase
+//   await mergeChunks(fileNameBase, totalChunks);
+};
+
+export const fileToBase64 = (file: File): Promise<string> => {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.readAsDataURL(file);
+    reader.onload = () => resolve(reader.result as string);
+    reader.onerror = error => reject(error);
+  });
+};

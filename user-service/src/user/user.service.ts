@@ -258,4 +258,12 @@ export class UserService {
       console.log(error)
     }
   }
+  //----------------Admin ----------------------------
+  async getAllAuthor(){
+    const data = await this.userModule.find().select("_id name")
+    return {
+      data
+    }
+  }
 }
+

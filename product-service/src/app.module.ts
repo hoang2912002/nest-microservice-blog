@@ -13,6 +13,7 @@ import { TagModule } from './tag/tag.module';
 import { LikeModule } from './like/like.module';
 import { RedisModule } from './redis/redis.module';
 import { NotificationModule } from './notification/notification.module';
+import { SupbaseModule } from './supbase/supbase.module';
 
 @Module({
   imports: [
@@ -32,6 +33,10 @@ import { NotificationModule } from './notification/notification.module';
       autoSchemaFile: {
         federation: 2,
       },
+      uploads: {
+        maxFileSize: 50 * 1024 * 1024, // 50MB
+        maxFiles: 10, // hoặc tuỳ bạn
+      },
       context: ({ req }) => {
         const userHeader = req.headers['x-user'];
         const user = userHeader ? JSON.parse(userHeader as string) : null;
@@ -44,7 +49,8 @@ import { NotificationModule } from './notification/notification.module';
     TagModule,
     LikeModule,
     RedisModule,
-    NotificationModule
+    NotificationModule,
+    SupbaseModule,
     
   ],
   controllers: [AppController],

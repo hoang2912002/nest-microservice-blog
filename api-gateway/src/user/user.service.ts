@@ -29,4 +29,7 @@ export class UserService {
     return await lastValueFrom(this.userServiceClient.send("deleteUserById",_id));
   }
 
+  async getAllAuthor(){
+    return await lastValueFrom(this.userServiceClient.send("getAllAuthor",""))
+  }
 }

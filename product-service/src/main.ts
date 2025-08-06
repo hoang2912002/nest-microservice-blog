@@ -2,6 +2,7 @@ import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { MicroserviceOptions, Transport } from '@nestjs/microservices';
 import * as cookieParser from 'cookie-parser';
+import * as bodyParser from 'body-parser';
 async function bootstrap() {
   const transportTCP = await NestFactory.createMicroservice<MicroserviceOptions>(AppModule,
     {
@@ -22,6 +23,7 @@ async function bootstrap() {
     },
   );
   const app = await NestFactory.create(AppModule)
+  app.use(bodyParser.json({ limit: '100mb' }),)
   app.use(cookieParser());
   app.enableCors(
   {

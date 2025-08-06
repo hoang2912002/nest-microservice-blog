@@ -8,6 +8,7 @@ import { SidebarTriggerWrapper } from "./components/layout/sideBarTriggerWrapper
 import { cn } from "@/lib/utils";
 import MainLayout from "./components/layout/mainLayout";
 import Providers from "./providers";
+import { Toaster } from "@/components/ui/sonner";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -40,8 +41,8 @@ export default async function RootLayout({
           <SidebarProvider defaultOpen={collapsed}>
             <AppSidebar session={session}/>
             <MainLayout>{children}</MainLayout>
-            
           </SidebarProvider>
+          <Toaster />
         </Providers>
       </body>
     </html>
