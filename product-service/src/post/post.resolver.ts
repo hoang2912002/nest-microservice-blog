@@ -1,7 +1,7 @@
 import { Resolver, Query, Mutation, Args, Int, ResolveField, Parent } from '@nestjs/graphql';
 import { PostService } from './post.service';
 import { Post } from './entities/post.entity';
-import { CreatePostInput } from './dto/create-post.input';
+import { CreatePostDTO, CreatePostInput } from './dto/create-post.input';
 import { UpdatePostDTO, UpdatePostInput, UploadChunkDto } from './dto/update-post.input';
 import { User } from 'src/user/entities/user.entity';
 import { UserService } from 'src/user/user.service';
@@ -15,10 +15,7 @@ export class PostResolver {
     private readonly userService: UserService
   ) {}
 
-  @Mutation(() => Post)
-  createPost(@Args('createPostInput') createPostInput: CreatePostInput) {
-    return this.postService.create(createPostInput);
-  }
+  
 
   @Query(() => [Post], { name: 'post' })
   async findAll(
@@ -50,11 +47,6 @@ export class PostResolver {
   // updatePost(@Args('updatePostInput') updatePostInput: UpdatePostInput) {
   //   return this.postService.update(updatePostInput.id, updatePostInput);
   // }
-
-  @Mutation(() => Post)
-  removePost(@Args('id', { type: () => Int }) id: number) {
-    return this.postService.remove(id);
-  }
 
 
   //Admin
@@ -88,5 +80,22 @@ export class PostResolver {
     @Args('updatePostDTO') updatePostDTO: UpdatePostDTO
   ){
     return this.postService.update(updatePostDTO)
+  }
+
+  @Mutation(() => Boolean, {name: "delete"})
+  async delete(
+    @Args("id", {type: () => Int}) id: number
+  ){
+    return await this.postService.remove(id)
+  }
+
+  @Mutation(() => Post, {name: 'create'})
+  create(@Args('createPostDTO') createPostDTO: CreatePostDTO) {
+    return this.postService.create(createPostDTO);
+  }
+
+  @Query(() => [Post],{name:"getAllPost_ForComment"})
+  getAllPost_ForComment(){
+    return this.postService.getAllPost_ForComment()
   }
 }

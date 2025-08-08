@@ -99,7 +99,7 @@ const TableShadcn = <TData, TValue>({
                             column.toggleSorting(column.getIsSorted() === "asc")
                         }
                     >
-                        {String(column.id)}
+                        {String(!!col.header ? col?.header : column.id)}
                         <ArrowUpDown className="ml-2 h-4 w-4" />
                     </Button>
                 ),

@@ -71,4 +71,18 @@ export class CommentResolver {
     
     return await this.commentService.save_PostComment({createCommentInput,token})
   }
+
+  //--------------Admin-----------------------------
+  @Query(() => [Comment], {name: "getAllComment_ByAdmin"})
+  async getAllComment_ByAdmin(
+    @Args("skip",{type:()=> Int}) skip: number,
+    @Args("take",{type:()=> Int}) take: number,
+  ){
+    return this.commentService.getAllComment_ByAdmin({skip,take})
+  }
+
+  @Query(() => Int, {name:"countAllComment"})
+  async countAllComment(){
+    return this.commentService.countAllComment()
+  }
 }

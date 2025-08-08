@@ -45,3 +45,33 @@ export const EDIT_POST_BY_ID = gql`
         }
     }
 `
+
+export const DELETE_POST = gql`
+    mutation delete($id: Int!){
+        delete(id:$id)
+    }
+`
+
+export const CREATE_POST = gql`
+    mutation create($input: CreatePostDTO!){
+        create(createPostDTO: $input){
+            id
+            title
+            content
+            slug
+            authorId
+            createdAt
+            thumbnail
+            published
+        }
+    }
+`
+
+export const GET_ALL_ID_TITLE_POST = gql`
+    query getAllPost_ForComment{
+        getAllPost_ForComment{
+            id
+            title
+        }
+    }
+`

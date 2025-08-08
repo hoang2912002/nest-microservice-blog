@@ -56,8 +56,8 @@ export function PaginationPage<TData>({
                     </Select>
                 </div>
                 <div className="flex w-[100px] items-center justify-center text-sm font-medium">
-                    Page {isLoading ? defaultText : currentPage} of{" "}
-                    {isLoading ? defaultText : (totalPages && totalPages / (table.getState().pagination.pageSize / 10))}
+                    Page {isLoading ? defaultText : Math.ceil(currentPage)} of{" "}
+                    {isLoading ? defaultText : (totalPages && Math.ceil(totalPages / (table.getState().pagination.pageSize)))}
                 </div>
                 <div className="flex items-center space-x-2">
                     <Button
@@ -91,8 +91,8 @@ export function PaginationPage<TData>({
                         variant="outline"
                         size="icon"
                         className="hidden size-8 lg:flex"
-                        onClick={() => handleChangeCurrentPage(totalPages)}
-                        disabled={isLoading || currentPage >= totalPages}
+                        onClick={() => handleChangeCurrentPage(Math.ceil(totalPages / (table.getState().pagination.pageSize)))}
+                        disabled={isLoading || currentPage >= Math.ceil(totalPages / (table.getState().pagination.pageSize))}
                     >
                         <ChevronsRight />
                     </Button>

@@ -9,18 +9,23 @@ import PostView from "./postView";
 import { PostType } from "@/app/lib/type/modelType";
 import { getAllAuthor } from "@/app/lib/action/user";
 import PostEdit from "./postEdit";
+import PostDelete from "./postDelete";
+import { create } from "domain";
+import PostCreate from "./postCreate";
 const AllPost = () => {
     const [currentPage,setCurrentPage] = useState(DEFAULT_PAGE)
     const [pageSize,setPageSize] = useState(DEFAULT_PAGESIZE)
     const dialogKey = {
         view: false,
         edit:false,
-        delete:false
+        delete:false,
+        create:false
     }
     const dialogValue = {
         view: {} as PostType,
         edit: {} as PostType,
-        delete:{} as PostType
+        delete:{} as PostType,
+        create: {} as PostType
     }
     const [openDialog,setOpenDialog] = useState(dialogKey)
     const [valueResponse,setValueResponse] = useState(dialogValue)
@@ -51,7 +56,7 @@ const AllPost = () => {
             },
         ],
     })
-    const handleShowDialog = (name,value,item = {}) => {
+    const handleShowDialog = (name,value,item = {},refetchData=false) => {
         setOpenDialog((prev) => {
             const updated = {
                 ...prev,
@@ -66,9 +71,16 @@ const AllPost = () => {
             };
             return updated;
         });
+        if(!!refetchData){
+            postQuery.refetch()
+        }
     }
     return(
         <>
+            <div className="mb-2">
+            <PostCreate openDialog={openDialog} handleShowDialog={handleShowDialog} authorData={authorQuery.data} isLoading={authorQuery.isLoading}/>
+
+            </div>
             <TableShadcn 
                 columns={getAllPostColumns} 
                 data={postQuery?.data?.getAllPost_ByAdmin} 
@@ -82,18 +94,14 @@ const AllPost = () => {
                 handleShowDialog={handleShowDialog}
             />
             {
-                !postQuery.isLoading &&
-                <PostView openDialog={openDialog} valueResponse={valueResponse} handleShowDialog={handleShowDialog}/>
+                !postQuery.isLoading && (
+                    <div className="">
+                        <PostView openDialog={openDialog} valueResponse={valueResponse} handleShowDialog={handleShowDialog}/>
+                        <PostEdit openDialog={openDialog} valueResponse={valueResponse} handleShowDialog={handleShowDialog} authorData={authorQuery.data} isLoading={authorQuery.isLoading}/>
+                        <PostDelete openDialog={openDialog} valueResponse={valueResponse} handleShowDialog={handleShowDialog}/>
+                    </div>
+                )
             }
-            {
-                !postQuery.isLoading &&
-                <PostEdit openDialog={openDialog} valueResponse={valueResponse} handleShowDialog={handleShowDialog} authorData={authorQuery.data} isLoading={authorQuery.isLoading}/>
-            }
-            {
-                !postQuery.isLoading &&
-                <PostView openDialog={openDialog} valueResponse={valueResponse} handleShowDialog={handleShowDialog}/>
-            }
-            
         </>
     )
 }

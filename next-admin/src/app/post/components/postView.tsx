@@ -1,5 +1,6 @@
 'use client'
 import { PostType } from "@/app/lib/type/modelType"
+import { DialogState, DialogValue } from "@/app/lib/type/postType"
 import { Button } from "@/components/ui/button"
 import { Dialog, DialogClose, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
@@ -11,16 +12,6 @@ import dayjs from "dayjs"
 import { CalendarIcon } from "lucide-react"
 import Image from "next/image"
 
-type DialogState = {
-    edit: boolean;
-    delete: boolean;
-    view: boolean;
-}
-type DialogValue = {
-    view: PostType,
-    edit: PostType,
-    delete: PostType
-}
 type Props = {
     openDialog: DialogState
     valueResponse: DialogValue

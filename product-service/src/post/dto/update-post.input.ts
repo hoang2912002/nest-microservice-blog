@@ -45,4 +45,7 @@ export class UpdatePostDTO {
 
   @Field(() => Date)
   createdAt: Date
+
+  @Field(() => String, {nullable:true})
+  slug?: string
 }

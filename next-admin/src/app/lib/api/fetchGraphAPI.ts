@@ -22,7 +22,6 @@ export const FetchGraphQL = async (query:string, variables={}, isPublic=false) =
         }),
         
     })
-    console.log(res)
     const result = await res.json();
     if(result.data){
         return successResponse(result.data)

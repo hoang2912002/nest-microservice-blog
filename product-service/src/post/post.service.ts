@@ -1,5 +1,5 @@
 import { HttpStatus, Injectable } from '@nestjs/common';
-import { CreatePostInput } from './dto/create-post.input';
+import { CreatePostDTO, CreatePostInput } from './dto/create-post.input';
 import { UpdatePostDTO, UpdatePostInput } from './dto/update-post.input';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { errorResponse, successResponse } from 'src/util/helper';
@@ -7,14 +7,32 @@ import { join } from 'path';
 import * as fs from 'fs';
 import * as fsMerge from 'fs/promises';
 import { SupbaseService } from 'src/supbase/supbase.service';
+import slugify from 'slugify';
 @Injectable()
 export class PostService {
   constructor(
     private readonly prismaService: PrismaService,
     private readonly supbaseService: SupbaseService
   ){}
-  create(createPostInput: CreatePostInput) {
-    return 'This action adds a new post';
+
+  renderSlug(title: string){
+    return slugify(title, {
+      lower: true,
+      strict: true,
+      trim: true,
+    });
+  }
+
+  
+  async create(createPostDTO: CreatePostDTO) {
+    const slug = this.renderSlug(createPostDTO.title)
+    const data  = await this.prismaService.post.create({
+      data:{
+        ...createPostDTO,
+        slug
+      }
+    })
+    return data;
   }
 
   async findAll({skip,take}:{skip:number,take:number}) {
@@ -57,6 +75,7 @@ export class PostService {
       throw new Error('Not found id')
     }
     const {id,...dataUpdate} = updatePostDTO
+    dataUpdate.slug = this.renderSlug(updatePostDTO.title)
     return await this.prismaService.post.update({
       where: {
         id
@@ -68,8 +87,17 @@ export class PostService {
   }
 
   
-  remove(id: number) {
-    return `This action removes a #${id} post`;
+  async remove(id: number) {
+    try {
+      await this.prismaService.post.delete({
+        where: { id },
+      });
+      return true;
+    } catch (error) {
+      // Ví dụ: nếu id không tồn tại
+      console.error('Delete failed:', error);
+      return false;
+    }
   }
 
   //Admin
@@ -163,58 +191,8 @@ export class PostService {
     return uploadedUrl;
   }
 
+  async getAllPost_ForComment (){
+    return await this.prismaService.post.findMany()
+  }
 
-//   async mergeFiles(folderName: string) {
-//   const basePath = join(process.cwd(), 'temp_chunks');
-//   const folderPath = join(basePath, folderName);
-//   const outputFileDir = join(basePath, 'merge'); // thư mục chứa file merge, tạo nếu chưa tồn tại
-//   const outputFilePath = join(outputFileDir, `${folderName}`);
-
-//   // Tạo thư mục merge
-//   await fsMerge.mkdir(outputFileDir, { recursive: true });
-
-//   if (await fsMerge.stat(folderPath).then(s => s.isDirectory()).catch(() => false)) {
-//     const files = await fsMerge.readdir(folderPath);
-//     const sortedFiles = files.sort((a, b) => {
-//       const aIndex = parseInt(a.split('.')[0], 10);
-//       const bIndex = parseInt(b.split('.')[0], 10);
-//       return aIndex - bIndex;
-//     });
-
-//     let startPos = 0;
-//     let countFile = 0;
-
-//     for (const file of sortedFiles) {
-//       const fileSubPath = join(folderPath, file);
-      
-//       // Tạo stream đọc file
-//       const streamFile = fs.createReadStream(fileSubPath);
-
-//       // Ghi vào file merge tại vị trí startPos
-//       await new Promise((resolve, reject) => {
-//         streamFile.pipe(
-//           fs.createWriteStream(outputFilePath, { start: startPos, flags: 'r+' })
-//         ).on('finish', () => {})
-//          .on('error', reject);
-//       });
-
-//       // Cập nhật startPos
-//       const fileSize = (await fsMerge.stat(fileSubPath)).size;
-//       startPos += fileSize;
-
-//       countFile++;
-//       if (countFile === files.length) {
-//         // Sau khi ghép hết, xóa thư mục chứa các phần
-//         await fsMerge.rm(folderPath, { recursive: true, force: true });
-//         console.log('Đã xóa thư mục:', folderPath);
-//       }
-//     }
-
-//     console.log(`Merged file đã tạo tại: ${outputFilePath}`);
-//     return `Merged file đã tạo tại: ${outputFilePath}`;
-//   } else {
-//     console.error('Thư mục không tồn tại:', folderPath);
-//     return null;
-//   }
-// }
 }

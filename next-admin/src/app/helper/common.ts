@@ -125,7 +125,7 @@ export const convertTakeSkip = ({
 
 export const handleChunkFile = async (
   file?: File,
-  chunkSize = 128 * 1024,
+  chunkSize = 512 * 1024,
 ) => {
   if (!file) return;
 

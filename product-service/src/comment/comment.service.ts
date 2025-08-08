@@ -162,9 +162,29 @@ export class CommentService {
 
 
   async findReplies(parentId: number){
-  return await this.prismaService.comment.findMany({
-    where: { parentId },
-    include: { post:true, },
-  });
-}
+    return await this.prismaService.comment.findMany({
+      where: { parentId },
+      include: { post:true, },
+    });
+  }
+
+  //------------Admin--------------------------
+  async getAllComment_ByAdmin({skip,take}:{skip:number,take:number}){
+    const data = await this.prismaService.comment.findMany({
+      skip,
+      take,
+      include:{
+        post:true,
+      },
+    })
+    return data.map(comment => ({
+      ...comment,
+      userName: comment.parentId ? comment.userName : null,
+      typeComment: comment.parentId ? 'Replies comment' : 'Comment'
+    }));
+  }
+  
+  async countAllComment(){
+    return await this.prismaService.comment.count()
+  }
 }
