@@ -94,7 +94,7 @@ export const createPost = async (
     return data?.data?.create
 }
 
-export const getAllPost_ForComment = async () => {
-    const data = await FetchGraphQL(print(GET_ALL_ID_TITLE_POST),{},false)
+export const getAllPost_ForComment = async (take:number) => {
+    const data = await FetchGraphQL(print(GET_ALL_ID_TITLE_POST),{take},false)
     return data?.data?.getAllPost_ForComment
 }

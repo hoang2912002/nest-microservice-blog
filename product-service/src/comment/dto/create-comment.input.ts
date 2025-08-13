@@ -17,3 +17,21 @@ export class CreateCommentInput {
   @Field(() => Int, {nullable:true})
   parentId?: number
 }
+
+@InputType()
+export class CreateCommentDTO {
+  @Field(()=>Int)
+  postId: number;
+  
+  @Field()
+  content: string
+
+  @Field()
+  authorId: string
+  
+  @Field()
+  userName: string
+
+  @Field(() => Int, {nullable:true})
+  parentId?: number
+}

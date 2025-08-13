@@ -7,6 +7,7 @@ import { NotificationModule } from './notification/notification.module';
 import { ChatMessageModule } from './chat-message/chat-message.module';
 import { ConfigModule } from '@nestjs/config';
 import { ClientProxyModule } from './clientModule';
+import { UserModule } from './user/user.module';
 
 @Module({
   imports: [
@@ -16,7 +17,8 @@ import { ClientProxyModule } from './clientModule';
     ConfigModule.forRoot({
       isGlobal: true,
     }),
-    ClientProxyModule
+    ClientProxyModule,
+    UserModule
   ],
   controllers: [AppController],
   providers: [AppService, NotificationGateway],

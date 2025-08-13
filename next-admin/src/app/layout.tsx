@@ -40,7 +40,7 @@ export default async function RootLayout({
         <Providers>
           <SidebarProvider defaultOpen={collapsed}>
             <AppSidebar session={session}/>
-            <MainLayout>{children}</MainLayout>
+            <MainLayout session={session}>{children}</MainLayout>
           </SidebarProvider>
           <Toaster />
         </Providers>

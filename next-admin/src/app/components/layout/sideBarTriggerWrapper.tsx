@@ -4,13 +4,19 @@ import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbP
 import { Separator } from "@/components/ui/separator"
 import { SidebarInset, SidebarTrigger, useSidebar } from "@/components/ui/sidebar"
 import Cookies from "js-cookie"
+import { MessageCircleCode, MessageCircleMore } from "lucide-react"
 import { usePathname } from "next/navigation"
 import { Fragment, useEffect } from "react"
+import { SessionUser } from "@/app/lib/type/sessionType"
+import ChatMessage from "../messages/chatMessage"
 
-export function SidebarTriggerWrapper() {
+interface Props {
+  session: SessionUser
+}
+export function SidebarTriggerWrapper({session}: Props) {
   const { open, toggle } = useSidebar()
   const pathName = usePathname()
-  const segments = pathName.split('/').filter(Boolean).slice(0,2)
+  const segments = pathName.split('/').filter(Boolean).slice(0, 2)
   useEffect(() => {
     Cookies.set("sidebar_collapsed", String(open))
   }, [open])
@@ -25,7 +31,7 @@ export function SidebarTriggerWrapper() {
   return (
     <>
       <SidebarInset>
-        <header className="flex h-16 shrink-0 items-center gap-2 transition-[width,height] ease-linear group-has-data-[collapsible=icon]/sidebar-wrapper:h-12">
+        <header className="flex justify-between h-16 shrink-0 items-center gap-2 transition-[width,height] ease-linear group-has-data-[collapsible=icon]/sidebar-wrapper:h-12">
           <div className="flex items-center gap-2 px-4">
             <SidebarTrigger className="-ml-1" />
             <Separator
@@ -69,7 +75,11 @@ export function SidebarTriggerWrapper() {
               </BreadcrumbList>
             </Breadcrumb>
           </div>
+          <div className="relative mr-5">
+            <ChatMessage session={session} />
+          </div>
         </header>
+        <hr className="mb-3"/>
       </SidebarInset>
     </>
   )

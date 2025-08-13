@@ -1,6 +1,7 @@
 'use client'
 import { useEffect, useRef, useState } from 'react';
 import { io, Socket } from 'socket.io-client';
+import { ROLE } from '../common';
 
 interface NotificationData {
   content: string;
@@ -21,7 +22,7 @@ export interface UseSocketOptions {
 }
 
 const SOCKET_URL = process.env.NEXT_PUBLIC_SOCKET_URL!;
-export const useSocket = (userId: string, options: UseSocketOptions, subUrl = "") => {
+export const useSocket = (userId: string, options: UseSocketOptions, subUrl = "", role = ROLE.USER) => {
   /**
    * I. Config Socket IO
    * 1. socketRef = useRef<Socket | null>(null)
@@ -52,7 +53,7 @@ export const useSocket = (userId: string, options: UseSocketOptions, subUrl = ""
     if (!userId) return;
 
     const socket = io(`${SOCKET_URL}/${subUrl}`, {
-      query: { userId }, // Gửi userId để socket-service lưu vào onlineUsers
+      query: { userId, role }, // Gửi userId để socket-service lưu vào onlineUsers
       transports: ['websocket'],
     });
 

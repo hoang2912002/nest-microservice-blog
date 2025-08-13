@@ -7,6 +7,7 @@ import { MinusIcon } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { SessionUser } from "../lib/session";
 import { MessageData, useSocket } from "../hooks/useSocket";
+import { ROLE } from "../common";
 
 type Props = {
     session: SessionUser
@@ -14,6 +15,7 @@ type Props = {
 export default function ChatWidget({session}: Props) {
     const [isOpen, setIsOpen] = useState(false);
     const [inputComment, setInputComment] = useState("")
+    const [chatSessionId, setChatSessionId] = useState(null)
     const [isTyping, setIsTyping] = useState(false)
     const [messages, setMessages] = useState([])
     const typingTimeout = useRef<NodeJS.Timeout | null>(null);
@@ -32,12 +34,17 @@ export default function ChatWidget({session}: Props) {
     */
     useEffect(()=>{
         if (!isOpen) return;
-        console.log(1)
         fetchMessages();
         on('chatMessage', (newMsg) => {
-            console.log('On :', newMsg)
-            if(typeof newMsg === 'object'){
-                setMessages((prev) => [...prev, newMsg]);
+            console.log('On :', newMsg,ROLE.USER)
+            if (
+                newMsg &&
+                !Array.isArray(newMsg?.messageData) && // bỏ qua nếu là array
+                typeof newMsg?.messageData === "object" 
+            ) {
+                setMessages(
+                    (prev) => [...prev, newMsg.messageData]
+                );
                 setIsTyping(false)
             }
         });
@@ -76,19 +83,25 @@ export default function ChatWidget({session}: Props) {
             }
         );
     };
+    useEffect(() => {
+        if (messages.length > 0 && messages[0]?.chatSessionId !== chatSessionId) {
+            setChatSessionId(messages[0]?.chatSessionId);
+        }
+    }, [messages, chatSessionId]);
     const  { on, off, socket, emit } = useSocket(session._id, {
         onMessage: (data) => {
             console.log("🔔 Message received", data);
         }
-    },'chatMessage');
+    },'chatMessage', session.roleId);
     
     const sendMessage = () => {
         if(inputComment.trim()){
             emit(
                 'createChatMessage',
                 {
+                    chatSessionId:chatSessionId ?? null,
                     senderId: session._id,
-                    receiverId: '6884bf786d59c6d04e37a0fd',
+                    receiverId: null,
                     content: inputComment,
                     read: false,
                     status: 'pending',

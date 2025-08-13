@@ -87,7 +87,7 @@ const PostCreate = ({
         }
     },[isPending,creating])
     useEffect(() => {
-        if (openDialog.delete && !dialogLoaded) {
+        if (openDialog.create && !dialogLoaded) {
             setStatePost(initialState);
             setDialogLoaded(!dialogLoaded);
             setCreating(false)

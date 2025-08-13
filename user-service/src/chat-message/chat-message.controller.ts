@@ -1,7 +1,7 @@
 import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
 import { ChatMessageService } from './chat-message.service';
 import { CreateChatMessageDto } from './dto/create-chat-message.dto';
-import { UpdateChatMessageDto } from './dto/update-chat-message.dto';
+import { SetStateDTO, UpdateChatMessageDto } from './dto/update-chat-message.dto';
 import { MessagePattern } from '@nestjs/microservices';
 
 @Controller('chat-message')
@@ -33,5 +33,31 @@ export class ChatMessageController {
   @Delete(':id')
   remove(@Param('id') id: string) {
     return this.chatMessageService.remove(+id);
+  }
+
+  //------------------Admin----------------------------
+  @MessagePattern("getAllListChatMessages_FormAdmin")
+  @Post()
+  getAllListChatMessages_FormAdmin(
+    @Body() receiverId: string
+  ){
+    return this.chatMessageService.getAllListChatMessages_FormAdmin(receiverId)
+  }
+
+
+  @MessagePattern("getMessagesBySessionId")
+  @Post()
+  getMessagesBySessionId(
+    @Body() chatSessionId: string
+  ){
+    return this.chatMessageService.getMessagesBySessionId(chatSessionId)
+  }
+  
+  @MessagePattern("setStateMessage")
+  @Post()
+  setStateMessage(
+    @Body() setStateDTO: SetStateDTO
+  ){
+    return this.chatMessageService.setStateMessage(setStateDTO)
   }
 }

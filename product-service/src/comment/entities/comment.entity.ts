@@ -11,8 +11,8 @@ export class Comment {
   @Field()
   content: string;
   
-  @Field(()=>Post)
-  postId: Post;
+  @Field(()=>Int)
+  postId: number;
 
   @Field(() => Post)
   post: Post;

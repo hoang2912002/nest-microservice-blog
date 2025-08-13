@@ -31,3 +31,22 @@ export type CreateCommentState =
         ok?: boolean
     }
     | undefined
+
+export type UpdateCommentState = 
+    | {
+        data:{
+            content?:string,
+            authorId?: string;
+            postId?: string | number;
+            userName: string;
+        };
+        errors?:{
+            content?: string[];
+            authorId?: string[];
+            postId?: string[] | number[];
+            userName: boolean[];
+        };
+        message?:string
+        ok?: boolean
+    }
+    | undefined

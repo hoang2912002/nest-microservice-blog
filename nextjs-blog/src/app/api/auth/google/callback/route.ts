@@ -10,6 +10,7 @@ export async function GET(req: NextResponse){
     const avatar = searchParams.get("avatar")
     const accessToken = searchParams.get("accessToken")
     const email = searchParams.get("email")
+    const roleId = searchParams.get("roleId")
     if(!accessToken || !userId) throw new Error('Login Google fail');
     const data = await fetchAuthRestApi({userId},'auth/verify_google_token','GET',accessToken,false)
     if(data.success === false){
@@ -22,7 +23,8 @@ export async function GET(req: NextResponse){
                 _id:userId,
                 name:name ?? "",
                 avatar: avatar ?? undefined,
-                email:email ?? ""
+                email:email ?? "",
+                roleId:roleId ?? ""
             },
             accessToken
         })

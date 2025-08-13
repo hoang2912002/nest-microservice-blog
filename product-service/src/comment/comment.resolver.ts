@@ -1,8 +1,8 @@
 import { Resolver, Query, Mutation, Args, Int, ResolveField, Parent, Context } from '@nestjs/graphql';
 import { CommentService } from './comment.service';
 import { Comment } from './entities/comment.entity';
-import { CreateCommentInput } from './dto/create-comment.input';
-import { UpdateCommentInput } from './dto/update-comment.input';
+import { CreateCommentDTO, CreateCommentInput } from './dto/create-comment.input';
+import { UpdateCommentDTO, UpdateCommentInput } from './dto/update-comment.input';
 import { User } from 'src/user/entities/user.entity';
 import { UserService } from 'src/user/user.service';
 
@@ -84,5 +84,19 @@ export class CommentResolver {
   @Query(() => Int, {name:"countAllComment"})
   async countAllComment(){
     return this.commentService.countAllComment()
+  }
+
+  @Mutation(() => Comment, {name:"createNewComment"})
+  createNewComment(
+    @Args("createCommentDTO") createCommentDTO: CreateCommentDTO
+  ){
+    return this.commentService.createNewComment(createCommentDTO)
+  }
+  
+  @Mutation(() => Comment, {name:"updateCommentFormAdmin"})
+  updateCommentFormAdmin(
+    @Args("updateCommentDTO") updateCommentDTO: UpdateCommentDTO
+  ){
+    return this.commentService.updateCommentFormAdmin(updateCommentDTO)
   }
 }

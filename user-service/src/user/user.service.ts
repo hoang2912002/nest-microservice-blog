@@ -265,5 +265,11 @@ export class UserService {
       data
     }
   }
+
+  async getAllAdminList(){
+    return await this.userModule.find({
+      roleId: "1010-002"
+    }).select("_id name roleId")
+  }
 }
 

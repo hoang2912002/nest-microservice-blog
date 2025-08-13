@@ -6,5 +6,6 @@ export type SessionUser = {
     email:string,
     _id:string,
     name:string,
-    avatar?:string
+    avatar?:string,
+    roleId?:string
 }

@@ -3,7 +3,8 @@ import { HttpStatus } from "./httpStatus";
 import { Blob } from "buffer";
 import { uploadChunk } from "../lib/action/post";
 import { v4 as uuidv4 } from 'uuid';
-
+import { formatDistanceToNowStrict } from "date-fns";
+import dayjs from "dayjs";
 export const nameMap: Record<string, string> = {
     like: 'Like',
     notification: 'Notification',
@@ -159,3 +160,21 @@ export const fileToBase64 = (file: File): Promise<string> => {
     reader.onerror = error => reject(error);
   });
 };
+
+export const convertTimeChat = (date: Date) => {
+  const now = dayjs();
+  const target = dayjs(date);
+  const diffMinutes = now.diff(target, "minute");
+  const diffHours = now.diff(target, "hour");
+  const diffDays = now.diff(target, "day");
+
+  if (diffMinutes < 60) return `${diffMinutes}m`; // phút
+  if (diffHours < 24) return `${diffHours}h`; // giờ
+  if (diffDays < 7) return `${diffDays}d`; // ngày
+  return target.format("DD/MM/YYYY"); // fallback
+}
+
+export const ROLE = {
+    ADMIN: "1010-002",
+    USER: "1010-001"
+}

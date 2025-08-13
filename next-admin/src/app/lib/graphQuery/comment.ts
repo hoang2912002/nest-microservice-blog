@@ -26,6 +26,7 @@ export const GET_ALL_COMMENT = gql`
             userName
             createdAt
             updatedAt
+            postId
         }
         countAllComment
     }
@@ -34,6 +35,14 @@ export const GET_ALL_COMMENT = gql`
 export const CREATE_NEW_COMMENT = gql`
     mutation createNewComment($input: CreateCommentDTO!){
         createNewComment(createCommentDTO: $input){
+            id
+        }
+    }
+`
+
+export const UPDATE_COMMENT = gql`
+    mutation updateCommentFormAdmin($input: UpdateCommentDTO!){
+        updateCommentFormAdmin(updateCommentDTO: $input){
             id
         }
     }

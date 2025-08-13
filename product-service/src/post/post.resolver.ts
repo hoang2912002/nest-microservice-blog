@@ -1,4 +1,4 @@
-import { Resolver, Query, Mutation, Args, Int, ResolveField, Parent } from '@nestjs/graphql';
+import { Resolver, Query, Mutation, Args, Int, ResolveField, Parent, Float } from '@nestjs/graphql';
 import { PostService } from './post.service';
 import { Post } from './entities/post.entity';
 import { CreatePostDTO, CreatePostInput } from './dto/create-post.input';
@@ -7,6 +7,7 @@ import { User } from 'src/user/entities/user.entity';
 import { UserService } from 'src/user/user.service';
 import { Body, UploadedFile, UseInterceptors } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
+import { take } from 'rxjs';
 
 @Resolver(() => Post)
 export class PostResolver {
@@ -95,7 +96,9 @@ export class PostResolver {
   }
 
   @Query(() => [Post],{name:"getAllPost_ForComment"})
-  getAllPost_ForComment(){
-    return this.postService.getAllPost_ForComment()
+  getAllPost_ForComment(
+    @Args("take",{type:() => Float}) take: number
+  ){
+    return this.postService.getAllPost_ForComment(take)
   }
 }

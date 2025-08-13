@@ -163,7 +163,7 @@ const TableShadcn = <TData, TValue>({
         return col
     })
     const table = useReactTable({
-        data,
+        data: data ?? [],
         columns: enhancedColumns,
         pageCount,
         manualPagination: true,
@@ -205,8 +205,8 @@ const TableShadcn = <TData, TValue>({
                         ))}
                     </TableHeader>
                     <TableBody>
-                        {!isLoading && table?.getRowModel().rows?.length > 0 ? (
-                            table?.getRowModel().rows.map((row) => (
+                        {!isLoading && table?.getRowModel()?.rows?.length > 0 ? (
+                            table?.getRowModel()?.rows?.map((row) => (
                                 <TableRow
                                     key={row.id}
                                     data-state={row.getIsSelected() && "selected"}

@@ -1,9 +1,11 @@
+'use server'
 import { convertTakeSkip } from "@/app/helper/common"
 import { FetchGraphQL } from "../api/fetchGraphAPI"
-import { CREATE_NEW_COMMENT, GET_ALL_COMMENT } from "../graphQuery/comment"
+import { CREATE_NEW_COMMENT, GET_ALL_COMMENT, UPDATE_COMMENT } from "../graphQuery/comment"
 import { print } from "graphql"
-import { CreateCommentState } from "../type/commentType"
-import { CreateCommentSchema } from "../zod/commentSchema"
+import { CreateCommentState, UpdateCommentState } from "../type/commentType"
+import { CreateCommentSchema, UpdateCommentSchema } from "../zod/commentSchema"
+import { getSession } from "../session"
 
 export const getAllComment = async ({
     page,
@@ -26,6 +28,8 @@ export const createComment = async (
     state: CreateCommentState,
     formData: FormData
 ) => {
+    const cookies = await getSession()
+    formData.set('userName',cookies?.name)
     const validate = CreateCommentSchema.safeParse(Object.fromEntries(formData.entries()))
     if(validate?.error){
         const errors = validate.error.issues;
@@ -38,4 +42,22 @@ export const createComment = async (
         input: validate.data
     })
     return data?.data?.createNewComment
+}
+
+export const updateComment = async (
+    state: UpdateCommentState,
+    formData:FormData
+) => {
+    const validate = UpdateCommentSchema.safeParse(Object.fromEntries(formData.entries()))
+    if(validate?.error){
+        const errors = validate.error.issues;
+        const paths = errors.map(err => err.path.join('.'));
+        return {
+            errorFields: paths
+        }
+    }
+    const data = await FetchGraphQL(print(UPDATE_COMMENT),{
+        input: validate.data
+    })
+    return data?.data?.updateComment
 }

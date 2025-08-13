@@ -11,7 +11,8 @@ export type SessionUser = {
     email:string,
     _id:string,
     name:string,
-    avatar?:string
+    avatar?:string,
+    roleId?:string
 }
 export const createSession = async (payload: Session) => {
     const session = await new SignJWT(payload).setProtectedHeader({alg:"HS256"}).

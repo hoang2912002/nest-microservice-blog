@@ -68,7 +68,8 @@ export class AuthController {
             `&name=${encodeURIComponent(user.data?.user.name?.trim())}` +
             `&avatar=${encodeURIComponent(user.data?.user.avatar?.trim())}` +
             `&accessToken=${user.data?.access_token}` +
-            `&email=${encodeURIComponent(user.data?.user.email?.trim())}`
+            `&email=${encodeURIComponent(user.data?.user.email?.trim())}` +
+            `&roleId=${encodeURIComponent(user.data?.user.roleId?.trim())}`
             )
 
         return  req;

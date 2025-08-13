@@ -1,4 +1,5 @@
 'use client'
+import SelectMultiple from "@/app/components/common/selectMultiple"
 import { createComment } from "@/app/lib/action/comment"
 import { DialogCommentState } from "@/app/lib/type/commentType"
 import { PostType } from "@/app/lib/type/modelType"
@@ -8,8 +9,10 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectGroup, SelectItem, SelectLabel, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Textarea } from "@/components/ui/textarea"
+import { QueryObserverResult, RefetchOptions } from "@tanstack/react-query"
 import { Loader2Icon } from "lucide-react"
-import { useActionState, useState } from "react"
+import { useActionState, useEffect, useState } from "react"
+import { toast } from "sonner"
 
 type AuthorType =  {
     _id: string,
@@ -22,9 +25,10 @@ interface Props {
     postData: PostType,
     isLoading: boolean,
     authorData: AuthorType,
-    isLoadingAuthor: boolean
+    isLoadingAuthor: boolean,
+    handleCallRefetch: ((type:string,cb?: (newValues: any) => void) => void)
 }
-const CommentCreate = ({openDialog,handleShowDialog,postData, isLoading, authorData, isLoadingAuthor}: Props) => {
+const CommentCreate = ({openDialog,handleShowDialog,postData, isLoading, authorData, isLoadingAuthor, handleCallRefetch}: Props) => {
     const initialState = {
         content:"",
         postId: "",
@@ -32,11 +36,23 @@ const CommentCreate = ({openDialog,handleShowDialog,postData, isLoading, authorD
         userName: "",
     }
     const [statePost, setStatePost] = useState(initialState)
-    const [state, action] = useActionState(createComment,undefined)
+    const [state, action,isPending] = useActionState(createComment,undefined)
     const [creating, setCreating] = useState(false)
-    const handleSubmit = (e) => {
-
-    } 
+    const [dialogLoaded, setDialogLoaded] = useState(false);
+    useEffect(() => {
+        if(!isPending && creating){
+            handleShowDialog('create',false, {}, true)
+            setCreating(false)
+            toast.success('Create post successful');
+        }
+    },[isPending,creating])
+    useEffect(() => {
+        if (openDialog.create && !dialogLoaded) {
+            setStatePost(initialState);
+            setDialogLoaded(!dialogLoaded);
+            setCreating(false)
+        }
+    },[openDialog, dialogLoaded]) 
     const handleInputChange = (e: any, inputField: string) => {
         const {value} = e?.target
         setStatePost((prev) => ({
@@ -44,16 +60,28 @@ const CommentCreate = ({openDialog,handleShowDialog,postData, isLoading, authorD
             [inputField]: value
         }))
     }
-    console.log(postData)
+    const handleOnChange = (inputField : string,val: any) => {
+        setStatePost((prev) => ({
+            ...prev,
+            postId: inputField === 'POST' ? val : prev.postId,
+            authorId: inputField === 'AUTHOR' ? val : prev.authorId
+        }))
+    }
     return (
         <>
-            <Button variant="outline" onClick={() => handleShowDialog('create',true)}>Open Dialog</Button>
+            <Button variant="outline" onClick={() => {
+                handleShowDialog('create',true) 
+                setStatePost(initialState)
+            }}>Open Dialog</Button>
             <Dialog open={openDialog.create} onOpenChange={() => {
                 handleShowDialog('create', false)
                 setStatePost(initialState)
             }}>
                 <DialogContent className="sm:max-w-[600px]">
-                    <form onSubmit={handleSubmit}>
+                    <form action={(formData) => {
+                        action(formData)
+                        setCreating(true)
+                    }}>
                         <DialogHeader>
                             <DialogTitle>Chi tiết bình luận</DialogTitle>
                             <DialogDescription>Thêm mới bình luận về bài viết.</DialogDescription>
@@ -69,60 +97,30 @@ const CommentCreate = ({openDialog,handleShowDialog,postData, isLoading, authorD
                             </div>
                             <div className="grid gap-1">
                                 <Label>Post</Label>
-                                <Select value={statePost?.authorId} name="authorId">
-                                    <SelectTrigger className="w-full">
-                                        <SelectValue placeholder="Select author" />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        <SelectGroup>
-                                            <SelectLabel>Posts</SelectLabel>
-                                            {!isLoading && postData?.length > 0 &&
-                                                postData?.map((val) => {
-                                                    return (
-                                                        <SelectItem
-                                                            value={val.id}
-                                                            key={val.id}
-                                                            className={val.id === statePost?.postId ? "bg-muted font-semibold" : ""}
-                                                        >
-                                                            {val.title}
-                                                        </SelectItem>
-
-                                                    )
-                                                }
-                                                )}
-                                        </SelectGroup>
-                                    </SelectContent>
-                                </Select>
+                                <Input type="hidden" name="postId" value={statePost.postId} readOnly/>
+                                <SelectMultiple 
+                                    values={postData} 
+                                    handleCallRefetch={handleCallRefetch} 
+                                    isLoading={isLoading} 
+                                    handleOnChange_Parent={handleOnChange} 
+                                    keyMap={['id', 'title']}
+                                    typeCallRefetch="POST"/>
                                 {
-                                    state?.errorFields?.includes('authorId') && <div className="text-red-500">Post is required</div>
+                                    state?.errorFields?.includes('postId') && <div className="text-red-500">Post is required</div>
                                 }                
                             </div>
                             <div className="grid gap-1">
                                 <Label>Author</Label>
-                                <Select value={statePost?.user?._id} name="authorId">
-                                    <SelectTrigger className="w-full">
-                                        <SelectValue placeholder="Select author" />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        <SelectGroup>
-                                            <SelectLabel>Authors</SelectLabel>
-                                            {!isLoadingAuthor && authorData?.length > 0 &&
-                                                authorData?.map((val) => {
-                                                    return (
-                                                        <SelectItem
-                                                            value={val._id}
-                                                            key={val._id}
-                                                            className={val._id === statePost?.authorId ? "bg-muted font-semibold" : ""}
-                                                        >
-                                                            {val.name}
-                                                        </SelectItem>
-
-                                                    )
-                                                }
-                                                )}
-                                        </SelectGroup>
-                                    </SelectContent>
-                                </Select>
+                                <Input type="hidden" name="authorId" value={statePost.authorId} readOnly/>
+                                <SelectMultiple 
+                                    values={authorData} 
+                                    handleCallRefetch={handleCallRefetch} 
+                                    isLoading={isLoading} 
+                                    handleOnChange_Parent={handleOnChange} 
+                                    keyMap={['_id', 'name']}
+                                    typeCallRefetch="AUTHOR" 
+                                    mongoDB={true}
+                                />
                                 {
                                     state?.errorFields?.includes('authorId') && <div className="text-red-500">AuthorId is required</div>
                                 }                

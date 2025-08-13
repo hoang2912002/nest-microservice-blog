@@ -191,8 +191,11 @@ export class PostService {
     return uploadedUrl;
   }
 
-  async getAllPost_ForComment (){
-    return await this.prismaService.post.findMany()
+  async getAllPost_ForComment (take: number){
+    return await this.prismaService.post.findMany({
+      skip:0,
+      take,
+    })
   }
 
 }

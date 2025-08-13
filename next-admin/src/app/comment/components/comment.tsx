@@ -2,7 +2,7 @@
 import { getAllPost, getAllPost_ForComment } from "@/app/lib/action/post";
 import { DEFAULT_PAGE, DEFAULT_PAGESIZE } from "@/constant";
 import { useMutation, useQueries, useQuery } from "@tanstack/react-query";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import TableShadcn from "@/app/components/common/table";
 import { getAllAuthor } from "@/app/lib/action/user";
 import { create } from "domain";
@@ -10,9 +10,16 @@ import { getAllComment } from "@/app/lib/action/comment";
 import { CommentType } from "@/app/lib/type/modelType";
 import { getAllCommentCols } from "./columns";
 import CommentCreate from "./commentCreate";
+import CommentEdit from "./commentEdit";
+import CommentView from "./commentView";
 const AllComment = () => {
     const [currentPage,setCurrentPage] = useState(DEFAULT_PAGE)
     const [pageSize,setPageSize] = useState(DEFAULT_PAGESIZE)
+    const takeVal = {
+        post: 50,
+        author: 50
+    }
+    const [take,setTake] = useState(takeVal)
     const dialogKey = {
         view: false,
         edit:false,
@@ -34,11 +41,11 @@ const AllComment = () => {
                 queryFn: () => getAllComment({ page: currentPage, pageSize }),
             },
             {
-                queryKey: ['GET_ALL_POST',currentPage],
-                queryFn: () => getAllPost_ForComment(),
+                queryKey: ['GET_ALL_POST_FROM_COMMENT',currentPage, take.post],
+                queryFn: () => getAllPost_ForComment(take.post),
             },
             {
-                queryKey: ['GET_ALL_AUTHOR',currentPage],
+                queryKey: ['GET_ALL_AUTHOR_FROM_COMMENT',currentPage],
                 queryFn: () => getAllAuthor(),
             },
         ],
@@ -62,6 +69,24 @@ const AllComment = () => {
             commentQuery.refetch()
         }
     }
+    const handleCallRefetch = (type: "POST" | "AUTHOR", cb?: (newValues: any) => void) => {
+        setTake((prev) => ({
+            post: type === "POST" ? prev.post + 50 : prev.post,
+            author: type === "AUTHOR" ? prev.author + 50 : prev.author,
+        }));
+
+        const query = type === "POST" ? postQuery : authorQuery;
+
+        query
+            .refetch()
+            .then((res) => {
+            if (cb) cb(res.data);
+            })
+            .catch((err) => {
+            console.error(err);
+            });
+    };
+
     return(
         <>
             <div className="mb-2">
@@ -72,6 +97,7 @@ const AllComment = () => {
                 isLoading={postQuery.isLoading} 
                 authorData={authorQuery.data} 
                 isLoadingAuthor={authorQuery.isLoading}
+                handleCallRefetch={handleCallRefetch}
             />
 
             </div>
@@ -87,15 +113,32 @@ const AllComment = () => {
                 pageSize={pageSize}
                 handleShowDialog={handleShowDialog}
             />
-            {/* {
+            {
                 !postQuery.isLoading && (
                     <div className="">
-                        <PostView openDialog={openDialog} valueResponse={valueResponse} handleShowDialog={handleShowDialog}/>
-                        <PostEdit openDialog={openDialog} valueResponse={valueResponse} handleShowDialog={handleShowDialog} authorData={authorQuery.data} isLoading={authorQuery.isLoading}/>
-                        <PostDelete openDialog={openDialog} valueResponse={valueResponse} handleShowDialog={handleShowDialog}/>
+                        <CommentView 
+                            openDialog={openDialog} 
+                            valueResponse={valueResponse} 
+                            handleShowDialog={handleShowDialog} 
+                            postData={postQuery.data} 
+                            isLoading={postQuery.isLoading} 
+                            authorData={authorQuery.data} 
+                            isLoadingAuthor={authorQuery.isLoading}
+                        />
+                        <CommentEdit 
+                            openDialog={openDialog} 
+                            valueResponse={valueResponse} 
+                            handleShowDialog={handleShowDialog} 
+                            postData={postQuery.data} 
+                            isLoading={postQuery.isLoading} 
+                            authorData={authorQuery.data} 
+                            isLoadingAuthor={authorQuery.isLoading}
+                            handleCallRefetch={handleCallRefetch}
+                        />
+                        {/* <PostDelete openDialog={openDialog} valueResponse={valueResponse} handleShowDialog={handleShowDialog}/> */}
                     </div>
                 )
-            } */}
+            }
         </>
     )
 }

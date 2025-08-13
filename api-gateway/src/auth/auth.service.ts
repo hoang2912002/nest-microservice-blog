@@ -39,7 +39,7 @@ export class AuthService implements OnModuleInit {
     }
 
     async login(user:any,res:any){
-        const {email,_id,name,avatar,isActive } = user.data
+        const {email,_id,name,avatar,isActive, roleId } = user.data
         if(!isActive){
             return {
                 errorField:"isActive",
@@ -54,7 +54,8 @@ export class AuthService implements OnModuleInit {
                 email,
                 _id,
                 name,
-                avatar
+                avatar,
+                roleId
             }
         };
         return {

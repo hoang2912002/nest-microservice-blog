@@ -1,6 +1,6 @@
 import { Inject, Injectable } from '@nestjs/common';
-import { CreateCommentInput } from './dto/create-comment.input';
-import { UpdateCommentInput } from './dto/update-comment.input';
+import { CreateCommentDTO, CreateCommentInput } from './dto/create-comment.input';
+import { UpdateCommentDTO, UpdateCommentInput } from './dto/update-comment.input';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { ClientProxy } from '@nestjs/microservices';
 import { SOCKET_SERVICE, USER_SERVICE } from 'src/constants';
@@ -177,14 +177,42 @@ export class CommentService {
         post:true,
       },
     })
-    return data.map(comment => ({
-      ...comment,
-      userName: comment.parentId ? comment.userName : null,
-      typeComment: comment.parentId ? 'Replies comment' : 'Comment'
-    }));
+    return data
+    // return data.map(comment => ({
+    //   ...comment,
+    //   userName: comment.parentId ? comment.userName : null,
+    //   typeComment: comment.parentId ? 'Replies comment' : 'Comment'
+    // }));
   }
   
   async countAllComment(){
     return await this.prismaService.comment.count()
+  }
+
+  async createNewComment(createCommentDTO: CreateCommentDTO){
+    const {postId,authorId,content,userName,parentId} = createCommentDTO
+    const data  = {
+      content,
+      authorId,
+      post:{
+        connect:{
+          id: postId
+        }
+      },
+      userName
+    } as any
+    return await this.prismaService.comment.create({data})
+  }
+
+  async updateCommentFormAdmin(updateCommentDTO: UpdateCommentDTO){
+    const {id, ...dataComment} = updateCommentDTO
+    return await this.prismaService.comment.update({
+      where:{
+        id
+      },
+      data:{
+        ...dataComment
+      }
+    })
   }
 }

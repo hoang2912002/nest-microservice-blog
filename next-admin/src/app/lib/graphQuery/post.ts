@@ -68,8 +68,8 @@ export const CREATE_POST = gql`
 `
 
 export const GET_ALL_ID_TITLE_POST = gql`
-    query getAllPost_ForComment{
-        getAllPost_ForComment{
+    query getAllPost_ForComment($take: Float!){
+        getAllPost_ForComment(take: $take){
             id
             title
         }

@@ -85,4 +85,8 @@ export class UserController {
     return await this.userService.getAllAuthor()
   }
 
+  @MessagePattern("getAllAdminList")
+  async getAllAdminList(){
+    return await this.userService.getAllAdminList()
+  }
 }

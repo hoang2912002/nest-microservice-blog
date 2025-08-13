@@ -30,4 +30,17 @@ export class ChatMessageService {
   remove(id: number) {
     return `This action removes a #${id} chatMessage`;
   }
+
+  //-----------------admin-----------------------------
+  async getAllListChatMessages(receiverId:string){
+    return await lastValueFrom(this.clientProxy.send('getAllListChatMessages_FormAdmin',receiverId))
+  }
+
+  async getMessagesBySessionId(chatSessionId:string){
+    return await lastValueFrom(this.clientProxy.send('getMessagesBySessionId',chatSessionId))
+  }
+
+  async setStateMessage(chatSessionId: string, receiverId: string){
+    return await lastValueFrom(this.clientProxy.send("setStateMessage",{chatSessionId,receiverId}));
+  }
 }

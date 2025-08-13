@@ -7,6 +7,8 @@ import { RedisService } from 'src/redis/redis.service';
 import { ClientProxy } from '@nestjs/microservices';
 import { USER_SERVICE } from 'src/constants';
 import { Inject, UnauthorizedException } from '@nestjs/common';
+import { ROLE } from 'src/commont';
+import { UserService } from 'src/user/user.service';
 
 @WebSocketGateway({
   namespace:"/chatMessage",
@@ -15,6 +17,7 @@ import { Inject, UnauthorizedException } from '@nestjs/common';
 export class ChatMessageGateway {
   constructor(
     private readonly chatMessageService: ChatMessageService,
+    private readonly userService: UserService,
     private readonly redisService: RedisService,
     @Inject(USER_SERVICE)
     private readonly clientProxy: ClientProxy,
@@ -48,17 +51,46 @@ export class ChatMessageGateway {
     @ConnectedSocket() client: Socket,
   ) {
     const savedMessage = await this.chatMessageService.create(createChatMessageDto);
+    const role = client.handshake?.query?.role as string;
 
     // Gửi lại cho người gửi
-    client.emit('chatMessage', savedMessage);
-
-    // Gửi cho người nhận nếu online
-    const receiverSocketId = this.onlineUsers.get(createChatMessageDto.receiverId);
-    if (receiverSocketId) {
-      this.server.to(receiverSocketId).emit('chatMessage', savedMessage);
-    }
-
-    return savedMessage;
+    client.emit('chatMessage', {messageData:savedMessage, role});
+    // const receiverSocketId = this.onlineUsers.get(createChatMessageDto.receiverId);
+    // if (receiverSocketId) {
+    //   this.server.to(receiverSocketId).emit('chatMessage', savedMessage);
+    // }
+    if ([ROLE.ADMIN,ROLE.USER].includes(role)) {
+      if (!savedMessage.receiverId) {
+          // Gửi cho tất cả admin online
+          const admins = await this.userService.getAllAdminList();
+          admins.forEach(async (admin) => {
+            const getAllChat = await this.chatMessageService.getAllListChatMessages(admin._id)
+              const adminSocketId = this.onlineUsers.get(admin._id.toString());
+              if (adminSocketId) {
+                this.server.to(adminSocketId).emit('chatMessage', {messageData:getAllChat, role:admin.roleId });
+                this.server.to(adminSocketId).emit(
+                  `chatMessage:${savedMessage.chatSessionId}`,
+                  savedMessage
+                );
+              }
+          });
+      } else {
+          // Gửi riêng cho 1 admin
+          const getAllChat = await this.chatMessageService.getAllListChatMessages(savedMessage.receiverId)
+          const adminSocketId = this.onlineUsers.get(savedMessage.receiverId.toString());
+          if (adminSocketId) {
+              this.server.to(adminSocketId).emit('chatMessage', {messageData:getAllChat, role: ROLE.ADMIN});
+          }
+      }
+    } 
+    // else if (role === ROLE.ADMIN) {
+    //     // Gửi cho user
+    //     const userSocketId = this.onlineUsers.get(createChatMessageDto.receiverId.toString());
+    //     if (userSocketId) {
+    //         this.server.to(userSocketId).emit('chatMessage', {messageData:getAllChat, role});
+    //     }
+    // }
+    return {messageData:savedMessage, role};
   }
   
   @SubscribeMessage('isTyping')
@@ -103,5 +135,41 @@ export class ChatMessageGateway {
   @SubscribeMessage('removeChatMessage')
   remove(@MessageBody() id: number) {
     return this.chatMessageService.remove(id);
+  }
+
+  //-------------admin--------------------------
+  @SubscribeMessage("getAllListChatMessages")
+  getAllListChatMessages(
+    @MessageBody() user: any,
+  ){
+    const socketId = this.onlineUsers.get(user.receiverId);
+    if(socketId){
+      return this.chatMessageService.getAllListChatMessages(user.receiverId);
+    }
+    throw new UnauthorizedException()
+  }
+
+
+  @SubscribeMessage('getMessagesBySessionId')
+  getMessagesBySessionId(@MessageBody() user: any) {
+    const socketId = this.onlineUsers.get(user.receiverId);
+    if(socketId){
+      return this.chatMessageService.getMessagesBySessionId(user.chatSessionId);
+    }
+    throw new UnauthorizedException()
+  }
+
+  @SubscribeMessage("setStateMessage")
+  async setStateMessage(
+    @MessageBody() user: any,
+  ){
+    const socketId = this.onlineUsers.get(user.receiverId);
+    if(socketId){
+      const isRead_Message = await this.chatMessageService.setStateMessage(user.chatSessionId,user.receiverId)
+      if(isRead_Message){
+        return await this.chatMessageService.getAllListChatMessages(user.receiverId);
+      }
+    }
+    throw new UnauthorizedException()
   }
 }
