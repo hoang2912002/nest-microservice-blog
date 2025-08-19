@@ -5,6 +5,7 @@ import { CreateCommentDTO, CreateCommentInput } from './dto/create-comment.input
 import { UpdateCommentDTO, UpdateCommentInput } from './dto/update-comment.input';
 import { User } from 'src/user/entities/user.entity';
 import { UserService } from 'src/user/user.service';
+import { take } from 'rxjs';
 
 @Resolver(() => Comment)
 export class CommentResolver {
@@ -98,5 +99,12 @@ export class CommentResolver {
     @Args("updateCommentDTO") updateCommentDTO: UpdateCommentDTO
   ){
     return this.commentService.updateCommentFormAdmin(updateCommentDTO)
+  }
+
+  @Query(() => [Comment], {name:"getAllCommentForSelect"})
+  getAllCommentForSelect(
+    @Args("take") take: number
+  ){
+    return this.commentService.getAllCommentForSelect(take)
   }
 }

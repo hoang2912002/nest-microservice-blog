@@ -32,9 +32,10 @@ export class ChatMessageService {
   }
 
   //-----------------admin-----------------------------
-  async getAllListChatMessages(receiverId:string){
-    return await lastValueFrom(this.clientProxy.send('getAllListChatMessages_FormAdmin',receiverId))
+  async getAllListChatMessages(receiverId:string | null){
+    return await lastValueFrom(this.clientProxy.send('getAllListChatMessages_FormAdmin',{receiverId}))
   }
+
 
   async getMessagesBySessionId(chatSessionId:string){
     return await lastValueFrom(this.clientProxy.send('getMessagesBySessionId',chatSessionId))

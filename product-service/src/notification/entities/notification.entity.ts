@@ -40,4 +40,10 @@ export class Notification {
 
   @Field(()=>Boolean)
   isRead: boolean;
+
+  @Field(() => Date)
+  createdAt: Date
+
+  @Field(() => Date)
+  updatedAt: Date
 }

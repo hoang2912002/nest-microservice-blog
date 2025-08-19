@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { CreateNotificationInput } from './dto/create-notification.input';
+import { CreateNotificationDTO, CreateNotificationInput } from './dto/create-notification.input';
 import { PrismaService } from 'src/prisma/prisma.service';
 
 @Injectable()
@@ -56,6 +56,30 @@ export class NotificationService {
       },
       data:{
         isRead: true
+      }
+    })
+  }
+
+  //------------------------admin-----------------------------
+  async getAllNotification_ByAdmin(skip:number,take:number){
+    const data =  await this.prismaService.notification.findMany({
+      skip,
+      take,
+      include:{
+        post:true,
+      }
+    })
+    return data
+  }
+
+  async countAllNotification_ByAdmin(){
+    return await this.prismaService.notification.count()
+  }
+
+  async createNotification_ByAdmin(createNotificationDTO : CreateNotificationDTO){
+    return await this.prismaService.notification.create({
+      data: {
+        ...createNotificationDTO
       }
     })
   }

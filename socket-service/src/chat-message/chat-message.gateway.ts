@@ -53,36 +53,49 @@ export class ChatMessageGateway {
     const savedMessage = await this.chatMessageService.create(createChatMessageDto);
     const role = client.handshake?.query?.role as string;
 
-    // Gửi lại cho người gửi
-    client.emit('chatMessage', {messageData:savedMessage, role});
-    // const receiverSocketId = this.onlineUsers.get(createChatMessageDto.receiverId);
-    // if (receiverSocketId) {
-    //   this.server.to(receiverSocketId).emit('chatMessage', savedMessage);
-    // }
-    if ([ROLE.ADMIN,ROLE.USER].includes(role)) {
-      if (!savedMessage.receiverId) {
-          // Gửi cho tất cả admin online
-          const admins = await this.userService.getAllAdminList();
-          admins.forEach(async (admin) => {
-            const getAllChat = await this.chatMessageService.getAllListChatMessages(admin._id)
-              const adminSocketId = this.onlineUsers.get(admin._id.toString());
-              if (adminSocketId) {
-                this.server.to(adminSocketId).emit('chatMessage', {messageData:getAllChat, role:admin.roleId });
-                this.server.to(adminSocketId).emit(
+    const partnerId = createChatMessageDto?.sendToUser ? createChatMessageDto.senderId : createChatMessageDto.receiverId
+    let getAllChat = await this.chatMessageService.getAllListChatMessages(partnerId)
+    if(createChatMessageDto?.sendToUser){
+      //Admin gửi cho user
+      client.emit('chatMessage', {messageData:getAllChat, role: ROLE.ADMIN});
+      client.emit(`chatMessage:${savedMessage.chatSessionId}`,savedMessage)
+      const userSocketId = this.onlineUsers.get(createChatMessageDto.receiverId.toString());
+      if (userSocketId) {
+          this.server.to(userSocketId).emit('chatMessage', {messageData:savedMessage, role});
+      }
+    }
+    else{
+      //User gửi cho admin
+      client.emit('chatMessage', {messageData:savedMessage, role});
+      if ([ROLE.ADMIN,ROLE.USER].includes(role)) {
+        if (!savedMessage.receiverId) {
+            // Gửi cho tất cả admin online
+            const admins = await this.userService.getAllAdminList();
+            admins.forEach(async (admin) => {
+              getAllChat = await this.chatMessageService.getAllListChatMessages(admin._id)
+                const adminSocketId = this.onlineUsers.get(admin._id.toString());
+                if (adminSocketId) {
+                  this.server.to(adminSocketId).emit('chatMessage', {messageData:getAllChat, role:admin.roleId });
+                  this.server.to(adminSocketId).emit(
+                    `chatMessage:${savedMessage.chatSessionId}`,
+                    savedMessage
+                  );
+                }
+            });
+        } else {
+            // Gửi riêng cho 1 admin
+            // const getAllChat = await this.chatMessageService.getAllListChatMessages(savedMessage.receiverId)
+            const adminSocketId = this.onlineUsers.get(savedMessage.receiverId.toString());
+            if (adminSocketId) {
+              this.server.to(adminSocketId).emit('chatMessage', {messageData:getAllChat, role: ROLE.ADMIN});
+              this.server.to(adminSocketId).emit(
                   `chatMessage:${savedMessage.chatSessionId}`,
                   savedMessage
                 );
-              }
-          });
-      } else {
-          // Gửi riêng cho 1 admin
-          const getAllChat = await this.chatMessageService.getAllListChatMessages(savedMessage.receiverId)
-          const adminSocketId = this.onlineUsers.get(savedMessage.receiverId.toString());
-          if (adminSocketId) {
-              this.server.to(adminSocketId).emit('chatMessage', {messageData:getAllChat, role: ROLE.ADMIN});
-          }
-      }
-    } 
+            }
+        }
+      } 
+    }
     // else if (role === ROLE.ADMIN) {
     //     // Gửi cho user
     //     const userSocketId = this.onlineUsers.get(createChatMessageDto.receiverId.toString());

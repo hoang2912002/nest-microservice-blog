@@ -72,6 +72,10 @@ export const GET_ALL_ID_TITLE_POST = gql`
         getAllPost_ForComment(take: $take){
             id
             title
+            user{
+                _id
+                name
+            }
         }
     }
 `

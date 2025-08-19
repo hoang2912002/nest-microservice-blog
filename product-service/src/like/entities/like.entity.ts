@@ -11,14 +11,20 @@ export class Like {
   @Field()
   userId: string
 
-  @Field(()=>User)
-  @ResolveField(() => User)
-  user(@Parent() like: Like): any {
-    return { __typename: 'User', id: like.userId.toString() }; // Chỉ trả ID để federation tự xử lý
-  }
+  // @Field(()=>User)
+  // @ResolveField(() => User)
+  // user(@Parent() like: Like): any {
+  //   return { __typename: 'User', id: like.userId.toString() }; // Chỉ trả ID để federation tự xử lý
+  // }
 
-  @Field(()=> Post)
-  postId: Post
+  @Field(() => User)
+  user: User
+
+  @Field(()=> Int)
+  postId: number
+
+  @Field(() => Post)
+  post: Post
 
   @Field()
   createdAt: Date;

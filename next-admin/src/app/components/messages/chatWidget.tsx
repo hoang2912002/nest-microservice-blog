@@ -20,17 +20,27 @@ type Props = {
     ) => void,
     socketOn: (event: string, callback: (data: any) => void) => void,
     socketOff: (event: string) => void,
+    socketEvent: {
+        emit: <T = any>(
+            event: string,
+            data: any,
+            callback?: (response: T) => void
+        ) => void;
+    },
     isConnected:boolean,
     senderInfo:{
         name: string,
         avatar: string
     }
 }
-const ChatWidget = ({chatSessionId, session, onClose, position, socketEmit, socketOn, socketOff, isConnected, senderInfo }: Props) => {
+const ChatWidget = ({chatSessionId, session, onClose, position, socketEmit, socketOn, socketOff, isConnected, senderInfo, socketEvent }: Props) => {
     const [isOpen, setIsOpen] = useState(false);
     const [messages,setMessages] = useState([])
     const [inputComment, setInputComment] = useState("")
+    const [receiverMessage, setReceiverMessage] = useState(null)
     const messagesEndRef = useRef<HTMLDivElement | null>(null);
+    const [isTyping, setIsTyping] = useState(false)
+    const typingTimeout = useRef<NodeJS.Timeout | null>(null);
     const widgetWidth = 344; // px
     const gap = 16; // px
     const baseRight = 16;
@@ -64,41 +74,98 @@ const ChatWidget = ({chatSessionId, session, onClose, position, socketEmit, sock
         socketOn(eventName, (newMsg) => {
             setMessages((prev) => [...prev, newMsg]);
         })
+        socketOn('isTyping', (data) => {
+            console.log('isTyping: ',data)
+            if (data == session._id) {
+            setIsTyping(true);
+            }
+        });
+
+        socketOn('stopTyping', (data) => {
+            console.log('stopTyping: ',data)
+            if (data == session._id) {
+            setIsTyping(false);
+            }
+        });
         return () => {
             socketOff(eventName)
+            socketOff('isTyping')
+            socketOff('stopTyping')
         }
     },[isOpen])
+    useEffect(() => {
+        if (messages.length > 0) {
+            const found = messages.find((val) =>
+                (val.receiverId != null && val.receiverId !== session._id) ||
+                (val.senderId != null && val.senderId !== session._id)
+            );
+
+            const otherId =
+                found?.receiverId !== session._id
+                    ? found?.receiverId
+                    : found?.senderId;
+
+            if (otherId && otherId !== receiverMessage) {
+                setReceiverMessage(otherId);
+            }
+        }
+    },[messages,receiverMessage])
     const handleInputOnchange = (e:any) => {
         const value = e.target.value;
         setInputComment(value);
-        // if (!isTyping && value.trim()) {
-        //     // setIsTyping(true);
-        //     socket?.emit('isTyping', {
-        //         senderId: session._id,
-        //         receiverId: '6884bf786d59c6d04e37a0fd',
-        //     });
-        // }
-        // if (!value.trim()) {
-        //     // setIsTyping(false);
-        //     socket?.emit("stopTyping", {
-        //         senderId: session._id,
-        //         receiverId: '6884bf786d59c6d04e37a0fd',
-        //     });
-        // }
-        // if (typingTimeout.current) {
-        //     clearTimeout(typingTimeout.current);
-        // }
-        // typingTimeout.current = setTimeout(()=>{
-        //     // setIsTyping(false)
-        //     socket?.emit("stopTyping", {
-        //         senderId: session._id,
-        //         receiverId: '6884bf786d59c6d04e37a0fd',
-        //     });
-        // },5000)
+        if (!isTyping && value.trim()) {
+            // setIsTyping(true);
+            socketEvent?.emit('isTyping', {
+                senderId: session._id,
+                receiverId: receiverMessage,
+            });
+        }
+        if (!value.trim()) {
+            // setIsTyping(false);
+            socketEvent?.emit("stopTyping", {
+                senderId: session._id,
+                receiverId: receiverMessage,
+            });
+        }
+        if (typingTimeout.current) {
+            clearTimeout(typingTimeout.current);
+        }
+        typingTimeout.current = setTimeout(()=>{
+            // setIsTyping(false)
+            socketEvent?.emit("stopTyping", {
+                senderId: session._id,
+                receiverId: receiverMessage,
+            });
+        },5000)
     }
     const scrollToBottom = () => {
         messagesEndRef.current?.scrollIntoView({ behavior: 'auto' });
     };
+    const sendMessage = () => {
+        if(inputComment.trim()){
+            socketEmit(
+                'createChatMessage',
+                {
+                    chatSessionId:chatSessionId ?? null,
+                    senderId: session._id,
+                    receiverId: receiverMessage ?? null,
+                    content: inputComment,
+                    read: false,
+                    status: 'pending',
+                    sendToUser: true,
+                },
+                (responseData) => {
+                    setInputComment("")
+                    socketOn('stopTyping', (data) => {
+                        console.log('stopTyping: ',data)
+                        if (data == session._id) {
+                        setIsTyping(false);
+                        }
+                    });
+                }
+            )
+        }
+    }
     return (
         <div 
             className="fixed 
@@ -132,8 +199,8 @@ const ChatWidget = ({chatSessionId, session, onClose, position, socketEmit, sock
                     <MinusIcon/>
                 </Button>
             </div>
-            <div className="flex-1 p-3 overflow-y-auto text-sm flex-col-reverse">
-                <div className="flex flex-col p-2.5 space-y-2 max-h-[300px]">
+            <div className="flex-1 px-3 overflow-y-auto text-sm flex flex-col justify-end">
+                <div className="flex flex-col space-y-1 max-h-[300px]">
                     {
                     messages.length > 0 ? (
                         <>
@@ -147,9 +214,6 @@ const ChatWidget = ({chatSessionId, session, onClose, position, socketEmit, sock
                                         msg?.senderId === session._id
                                             ? "self-end bg-[#0084ff] text-white rounded-full"
                                             : "self-start bg-[#f1f0f0] text-black rounded-full",
-                                        messages.length === +idx + 1 
-                                            ? 'mb-2'
-                                            : ''
                                         )}
                                     >
                                         {msg?.content}
@@ -159,9 +223,9 @@ const ChatWidget = ({chatSessionId, session, onClose, position, socketEmit, sock
                             )
 
                         }
-                        {/* {isTyping && 
-                                <div className="text-xs italic text-gray-500 mt-1">Đang gõ...</div>
-                        } */}
+                        {isTyping && 
+                            <div className="text-xs italic text-gray-500 mt-1 ml-3 mb-0">Đang gõ...</div>
+                        }
                         </>
                     ) : (
                         <p className="text-gray-700 text-sm">Xin chào! Tôi có thể giúp gì?</p>
@@ -170,7 +234,7 @@ const ChatWidget = ({chatSessionId, session, onClose, position, socketEmit, sock
                 </div>
 
             </div>
-            <div className="p-2 border-t flex justify-between">
+            <div className="p-2 border-t flex justify-between mt-2">
                 <input
                     type="text"
                     placeholder="Nhập tin nhắn..."

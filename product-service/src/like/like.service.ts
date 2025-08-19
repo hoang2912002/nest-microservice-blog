@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
-import { CreateLikeInput } from './dto/create-like.input';
-import { UpdateLikeInput } from './dto/update-like.input';
+import { CreateLikeDTO, CreateLikeInput } from './dto/create-like.input';
+import { UpdateLikeDTO, UpdateLikeInput } from './dto/update-like.input';
 import { PrismaService } from 'src/prisma/prisma.service';
 
 @Injectable()
@@ -84,5 +84,60 @@ export class LikeService {
         }
     })
     return !!data
+  }
+
+  //--------------------Admin------------------------------
+  async getAllLike_ByAdmin({
+    skip,
+    take
+  }:{
+    skip: number,
+    take: number
+  }){
+    try {
+      return await this.prismaService.like.findMany({
+        skip,
+        take,
+        include:{
+          post:true,
+        }
+      })
+    } catch (error) {
+      throw new Error('Lỗi máy chủ!')
+    }
+  }
+
+  async countAllLike(){
+    return await this.prismaService.like.count()
+  }
+
+  async updateLike_ByAdmin({id,postId,userId, newPostId, newUserId}:UpdateLikeDTO){
+    if(id){
+      return await this.prismaService.like.update({
+        where:{
+          userId_postId: { userId, postId } 
+        },
+        data:{
+          postId: newPostId,userId: newUserId
+        }
+      })
+    }
+  }
+
+  async createLike_ByAdmin({postId,userId}: CreateLikeDTO){
+    const existData = await this.prismaService.like.findUnique({
+      where:{
+        userId_postId: { userId, postId } 
+      }
+    })
+    
+    if(existData){
+      throw new Error(`User: ${userId} liked post: ${postId}`);
+    }
+    return await this.prismaService.like.create({
+      data:{
+        postId,userId
+      },
+    })
   }
 }

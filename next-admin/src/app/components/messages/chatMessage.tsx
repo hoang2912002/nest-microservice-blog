@@ -163,11 +163,18 @@ const ChatMessage = ({ session }: Props) => {
             localStorage.setItem("openChatSessionIds", JSON.stringify(updated)); // lưu nhiều session
             return updated;
         });
-        const senderMap = JSON.parse(localStorage.getItem("senderInfo_ChatSession") || "{}");
-        senderMap[data.chatSessionId] = data.senderInfo; // data.senderInfo phải chứa thông tin người gửi
-        localStorage.setItem("senderInfo_ChatSession", JSON.stringify(senderMap));
+        setSenderInfoMap((prev) => {
+            if (prev[data.chatSessionId]) return prev; // đã có rồi thì không thêm
+            const updated = {
+            ...prev,
+            [data.chatSessionId]: data.senderInfo
+            };
+            localStorage.setItem("senderInfo_ChatSession", JSON.stringify(updated));
+            return updated;
+        });
 
         setIsReadMessage(data.chatSessionId)
+        
         setIsOpen(false)
     };
     const handleCloseChat = (sessionId: string) => {
@@ -176,6 +183,14 @@ const ChatMessage = ({ session }: Props) => {
             localStorage.setItem("openChatSessionIds", JSON.stringify(updated));
             return updated;
         });
+        
+        setSenderInfoMap((prev) => {
+            if(!prev[sessionId]) return prev
+            const updated = {...prev}
+            delete updated[sessionId]
+            localStorage.setItem("senderInfo_ChatSession", JSON.stringify(updated));
+            return updated;
+        })
     };
     return (
         <>
@@ -277,6 +292,7 @@ const ChatMessage = ({ session }: Props) => {
             </Popover>
             {openChatSessions.map((sessionId, index) => {
                 const senderInfo = senderInfoMap?.[sessionId] || null
+                console.log(senderInfo)
                 return (
                     <ChatWidget
                         key={sessionId}
@@ -289,6 +305,7 @@ const ChatMessage = ({ session }: Props) => {
                         socketOn={on}
                         socketOff={off}
                         isConnected={isConnected}
+                        socketEvent={socket}
                     />
                 )
             })}

@@ -215,4 +215,14 @@ export class CommentService {
       }
     })
   }
+
+  async getAllCommentForSelect(take: number){
+    return await this.prismaService.comment.findMany({
+      skip:0,
+      take,
+      include:{
+        post:true
+      }
+    })
+  }
 }

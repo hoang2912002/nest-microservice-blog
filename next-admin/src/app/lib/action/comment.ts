@@ -1,7 +1,7 @@
 'use server'
 import { convertTakeSkip } from "@/app/helper/common"
 import { FetchGraphQL } from "../api/fetchGraphAPI"
-import { CREATE_NEW_COMMENT, GET_ALL_COMMENT, UPDATE_COMMENT } from "../graphQuery/comment"
+import { CREATE_NEW_COMMENT, GET_ALL_COMMENT, GET_ALL_COMMENT_FOR_SELECT, UPDATE_COMMENT } from "../graphQuery/comment"
 import { print } from "graphql"
 import { CreateCommentState, UpdateCommentState } from "../type/commentType"
 import { CreateCommentSchema, UpdateCommentSchema } from "../zod/commentSchema"
@@ -60,4 +60,9 @@ export const updateComment = async (
         input: validate.data
     })
     return data?.data?.updateComment
+}
+
+export const getAllComment_ForSelect = async (take: number) => {
+    const data = await FetchGraphQL(print(GET_ALL_COMMENT_FOR_SELECT),{take},false)
+    return data?.data?.getAllCommentForSelect
 }

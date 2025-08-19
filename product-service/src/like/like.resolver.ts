@@ -1,12 +1,19 @@
-import { Resolver, Query, Mutation, Args, Int } from '@nestjs/graphql';
+import { Resolver, Query, Mutation, Args, Int, ResolveField, Parent } from '@nestjs/graphql';
 import { LikeService } from './like.service';
 import { Like } from './entities/like.entity';
-import { CreateLikeInput } from './dto/create-like.input';
-import { UpdateLikeInput } from './dto/update-like.input';
+import { CreateLikeDTO, CreateLikeInput } from './dto/create-like.input';
+import { UpdateLikeDTO, UpdateLikeInput } from './dto/update-like.input';
+import { skip } from 'rxjs';
+import { User } from 'src/user/entities/user.entity';
+import { UserService } from 'src/user/user.service';
+import { Post } from 'src/post/entities/post.entity';
 
 @Resolver(() => Like)
 export class LikeResolver {
-  constructor(private readonly likeService: LikeService) {}
+  constructor(
+    private readonly likeService: LikeService,
+    private readonly userService: UserService,
+  ) {}
 
   @Mutation(() => Like)
   createLike(@Args('createLikeInput') createLikeInput: CreateLikeInput) {
@@ -63,5 +70,38 @@ export class LikeResolver {
     @Args("userId",{type:()=>String}) userId: string
   ){
     return this.likeService.like_Post({postId,userId})
+  }
+
+  //----------------Admin------------------------------
+  @Query(() => [Like], {name: "getAllLike_ByAdmin"})
+  getAllLike_ByAdmin(
+    @Args("skip", {type:() => Int}) skip: number,
+    @Args("take", {type:() => Int}) take: number,
+  ){
+    return this.likeService.getAllLike_ByAdmin({skip,take})
+  }
+
+  @ResolveField(() => User)
+  async user(@Parent() like: Like): Promise<User> {
+    return this.userService.getUserById(like.userId);
+  }
+
+  @Query(() => Int, {name: "countAllLike"})
+  countAllLike(){
+    return this.likeService.countAllLike()
+  }
+
+  @Mutation(() => Like, {name:"updateLike_ByAdmin"})
+  updateLike_ByAdmin(
+    @Args('updateLikeDTO') updateLikeDTO: UpdateLikeDTO
+  ){
+    return this.likeService.updateLike_ByAdmin(updateLikeDTO)
+  }
+
+  @Mutation(() => Like, {name : "createLike_ByAdmin"})
+  createLike_ByAdmin(
+    @Args("createLikeDTO") createLikeDTO: CreateLikeDTO
+  ){
+    return this.likeService.createLike_ByAdmin(createLikeDTO)
   }
 }

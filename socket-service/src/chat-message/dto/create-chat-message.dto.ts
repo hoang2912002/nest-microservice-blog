@@ -2,6 +2,10 @@ import { IsBoolean, IsOptional, IsString } from "class-validator";
 
 export class CreateChatMessageDto {
     @IsString()
+    @IsOptional()
+    chatSessionId: string
+
+    @IsString()
     senderId: string;
 
     @IsString()
@@ -16,6 +20,10 @@ export class CreateChatMessageDto {
 
     @IsString()
     status: string
+
+    @IsBoolean()
+    @IsOptional()
+    sendToUser: boolean
 }
 
 export class TypingDTO {

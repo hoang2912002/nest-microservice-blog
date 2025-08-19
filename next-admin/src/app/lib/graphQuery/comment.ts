@@ -47,3 +47,11 @@ export const UPDATE_COMMENT = gql`
         }
     }
 `
+export const GET_ALL_COMMENT_FOR_SELECT = gql`
+    query getAllCommentForSelect($take: Float!){
+        getAllCommentForSelect(take: $take){
+            id
+            content
+        }
+    }
+`

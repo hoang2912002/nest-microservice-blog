@@ -39,9 +39,9 @@ export class ChatMessageController {
   @MessagePattern("getAllListChatMessages_FormAdmin")
   @Post()
   getAllListChatMessages_FormAdmin(
-    @Body() receiverId: string
+    @Body() user: any
   ){
-    return this.chatMessageService.getAllListChatMessages_FormAdmin(receiverId)
+    return this.chatMessageService.getAllListChatMessages_FormAdmin(user.receiverId)
   }
 
 

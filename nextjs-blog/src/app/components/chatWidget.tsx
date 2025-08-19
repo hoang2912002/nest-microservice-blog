@@ -16,6 +16,7 @@ export default function ChatWidget({session}: Props) {
     const [isOpen, setIsOpen] = useState(false);
     const [inputComment, setInputComment] = useState("")
     const [chatSessionId, setChatSessionId] = useState(null)
+    const [receiverMessage, setReceiverMessage] = useState(null)
     const [isTyping, setIsTyping] = useState(false)
     const [messages, setMessages] = useState([])
     const typingTimeout = useRef<NodeJS.Timeout | null>(null);
@@ -84,10 +85,30 @@ export default function ChatWidget({session}: Props) {
         );
     };
     useEffect(() => {
-        if (messages.length > 0 && messages[0]?.chatSessionId !== chatSessionId) {
-            setChatSessionId(messages[0]?.chatSessionId);
+        if (messages.length > 0) {
+            const foundMessage = messages.find(
+                (val) => val.chatSessionId !== null && val.chatSessionId !== undefined
+            );
+            const found = messages.find((val) =>
+                (val.receiverId != null && val.receiverId !== session._id) ||
+                (val.senderId != null && val.senderId !== session._id)
+            );
+
+            const keyChat = foundMessage?.chatSessionId; // có thể undefined
+            const otherId =
+                found?.receiverId !== session._id
+                    ? found?.receiverId
+                    : found?.senderId;
+
+            if (keyChat && keyChat !== chatSessionId) {
+                setChatSessionId(keyChat);
+            }
+
+            if (otherId && otherId !== receiverMessage) {
+                setReceiverMessage(otherId);
+            }
         }
-    }, [messages, chatSessionId]);
+    }, [messages, chatSessionId,receiverMessage]);
     const  { on, off, socket, emit } = useSocket(session._id, {
         onMessage: (data) => {
             console.log("🔔 Message received", data);
@@ -101,13 +122,17 @@ export default function ChatWidget({session}: Props) {
                 {
                     chatSessionId:chatSessionId ?? null,
                     senderId: session._id,
-                    receiverId: null,
+                    receiverId: receiverMessage ?? null,
                     content: inputComment,
                     read: false,
                     status: 'pending',
                 },
                 (responseData) => {
                     setInputComment("")
+                    socket?.emit("stopTyping", {
+                        senderId: session._id,
+                        receiverId: receiverMessage,
+                    });
                 }
             )
         }
@@ -119,14 +144,14 @@ export default function ChatWidget({session}: Props) {
             // setIsTyping(true);
             socket?.emit('isTyping', {
                 senderId: session._id,
-                receiverId: '6884bf786d59c6d04e37a0fd',
+                receiverId: receiverMessage,
             });
         }
         if (!value.trim()) {
             // setIsTyping(false);
             socket?.emit("stopTyping", {
                 senderId: session._id,
-                receiverId: '6884bf786d59c6d04e37a0fd',
+                receiverId: receiverMessage,
             });
         }
         if (typingTimeout.current) {
@@ -136,7 +161,7 @@ export default function ChatWidget({session}: Props) {
             // setIsTyping(false)
             socket?.emit("stopTyping", {
                 senderId: session._id,
-                receiverId: '6884bf786d59c6d04e37a0fd',
+                receiverId: receiverMessage,
             });
         },5000)
     }
@@ -168,8 +193,8 @@ export default function ChatWidget({session}: Props) {
                             <MinusIcon/>
                         </Button>
                     </div>
-                    <div className="flex-1 p-3 overflow-y-auto text-sm flex-col-reverse">
-                        <div className="flex flex-col p-2.5 space-y-2 max-h-[300px]">
+                    <div className="flex-1 px-3 overflow-y-auto text-sm flex flex-col justify-end">
+                        <div className="flex flex-col space-y-1 max-h-[300px]">
                             {
                             messages.length > 0 ? (
                                 <>
@@ -183,9 +208,6 @@ export default function ChatWidget({session}: Props) {
                                                 msg?.senderId === session._id
                                                     ? "self-end bg-[#0084ff] text-white rounded-full"
                                                     : "self-start bg-[#f1f0f0] text-black rounded-full",
-                                                messages.length === +idx + 1 
-                                                    ? 'mb-2'
-                                                    : ''
                                                 )}
                                             >
                                                 {msg?.content}
@@ -196,7 +218,7 @@ export default function ChatWidget({session}: Props) {
 
                                 }
                                 {isTyping && 
-                                      <div className="text-xs italic text-gray-500 mt-1">Đang gõ...</div>
+                                    <div className="text-xs italic text-gray-500 mt-1 ml-3 mb-0">Đang gõ...</div>
                                 }
                                 </>
                             ) : (
@@ -206,7 +228,7 @@ export default function ChatWidget({session}: Props) {
                         </div>
 
                     </div>
-                    <div className="p-2 border-t flex justify-between">
+                    <div className="p-2 border-t flex justify-between mt-2">
                         <input
                             type="text"
                             placeholder="Nhập tin nhắn..."

@@ -12,6 +12,18 @@ import { getAllCommentCols } from "./columns";
 import CommentCreate from "./commentCreate";
 import CommentEdit from "./commentEdit";
 import CommentView from "./commentView";
+const dialogKey = {
+        view: false,
+        edit:false,
+        delete:false,
+        create:false
+    }
+const dialogValue = {
+    view: {} as CommentType,
+    edit: {} as CommentType,
+    delete:{} as CommentType,
+    create: {} as CommentType
+}
 const AllComment = () => {
     const [currentPage,setCurrentPage] = useState(DEFAULT_PAGE)
     const [pageSize,setPageSize] = useState(DEFAULT_PAGESIZE)
@@ -20,18 +32,7 @@ const AllComment = () => {
         author: 50
     }
     const [take,setTake] = useState(takeVal)
-    const dialogKey = {
-        view: false,
-        edit:false,
-        delete:false,
-        create:false
-    }
-    const dialogValue = {
-        view: {} as CommentType,
-        edit: {} as CommentType,
-        delete:{} as CommentType,
-        create: {} as CommentType
-    }
+    
     const [openDialog,setOpenDialog] = useState(dialogKey)
     const [valueResponse,setValueResponse] = useState(dialogValue)
     const [commentQuery, postQuery, authorQuery] = useQueries({
@@ -114,7 +115,7 @@ const AllComment = () => {
                 handleShowDialog={handleShowDialog}
             />
             {
-                !postQuery.isLoading && (
+                !commentQuery.isLoading && (
                     <div className="">
                         <CommentView 
                             openDialog={openDialog} 

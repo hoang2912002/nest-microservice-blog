@@ -16,6 +16,8 @@ export class ChatMessageService {
   async create(createChatMessageDto: CreateChatMessageDto) {
     const {senderId, receiverId, content, read, status, chatSessionId} = createChatMessageDto
     let random_chatSession = chatSessionId
+    let receiver_message = receiverId as string | null
+
     if(!chatSessionId){
       const checkReceiver = await this.chatMessageModule.find({
         senderId,
@@ -23,15 +25,25 @@ export class ChatMessageService {
       .select({ _id: 1, receiverId: 1, chatSessionId: 1 })
       if (checkReceiver.length > 0 && checkReceiver[0].chatSessionId) {
         random_chatSession = checkReceiver[0].chatSessionId
+        const found = checkReceiver.find(
+          (val) => val.receiverId !== null && val.receiverId !== undefined
+        );
+
+        if (found) {
+          receiver_message = found.receiverId; // hoặc gán cả object tùy bạn
+        }
+        else{
+          random_chatSession = `${uuidv4()}__${dayjs().unix()}`;
+        }
       }
-       else {
-        // Chưa có → tạo mới
+      else {
         random_chatSession = `${uuidv4()}__${dayjs().unix()}`;
       }
     }
     return await this.chatMessageModule.create({
       ...createChatMessageDto,
-      chatSessionId: random_chatSession
+      chatSessionId: random_chatSession,
+      receiverId:receiver_message
     });
   }
 
@@ -62,11 +74,12 @@ export class ChatMessageService {
   }
 
   //-------------admin-------------------------
-  async getAllListChatMessages_FormAdmin(receiverId: string){
+  async getAllListChatMessages_FormAdmin(receiverId: string | null){
     const result = await this.chatMessageModule.aggregate([
       {
         $match: {
           $or: [
+            { senderId: receiverId },
             { receiverId: { $eq: null } },
             { receiverId: receiverId }
           ]
@@ -84,11 +97,24 @@ export class ChatMessageService {
         }
       },
       {
+        // Xác định ID của người còn lại (partnerId)
         $addFields: {
-          senderIdObj: {
+          partnerId: {
             $cond: {
-              if: { $regexMatch: { input: "$senderId", regex: /^[0-9a-fA-F]{24}$/ } },
-              then: { $toObjectId: "$senderId" },
+              if: { $ne: ["$senderId", receiverId] },
+              then: "$senderId",
+              else: "$receiverId"
+            }
+          }
+        }
+      },
+      {
+        // Convert sang ObjectId để join sang collection users
+        $addFields: {
+          partnerIdObj: {
+            $cond: {
+              if: { $regexMatch: { input: "$partnerId", regex: /^[0-9a-fA-F]{24}$/ } },
+              then: { $toObjectId: "$partnerId" },
               else: null
             }
           }
@@ -97,7 +123,7 @@ export class ChatMessageService {
       {
         $lookup: {
           from: "users",
-          localField: "senderIdObj",
+          localField: "partnerIdObj",
           foreignField: "_id",
           as: "senderInfo"
         }
@@ -109,9 +135,11 @@ export class ChatMessageService {
           lastMessage: 1,
           lastMessageAt: 1,
           senderId: 1,
+          receiverId:1,
           read:1,
           "senderInfo.name": 1,
           "senderInfo.avatar": 1,
+          "senderInfo._id": 1,
         }
       },
       { $sort: { lastMessageAt: -1 } }
@@ -128,15 +156,32 @@ export class ChatMessageService {
 
   async setStateMessage(setStateDTO:SetStateDTO){
     const {chatSessionId,receiverId} = setStateDTO
-    const updateRead_Status =  await this.chatMessageModule.updateMany({
-      chatSessionId
-    },{
-      read: true,
-      receiverId
-    })
-    if(updateRead_Status){
-      return true
+    const messages = await this.chatMessageModule.find({chatSessionId})
+    if(!messages.length){
+      return false
     }
-    return false
+
+    const needUpdateReceiverId = messages.some(
+      (meg) => !meg.receiverId && meg.senderId !== meg.receiverId
+    )
+    const updateQuery= {
+      chatSessionId,
+      read: {$ne: true},
+      $or: [
+        { receiverId: { $eq: null } },
+        { receiverId: receiverId }
+      ]
+    } as any 
+
+    const updateData: any = {
+      read: true
+    };
+
+    if(needUpdateReceiverId){
+      updateData.receiverId = receiverId
+    }
+
+    const updateResult = await this.chatMessageModule.updateMany(updateQuery, updateData);
+    return updateResult.modifiedCount > 0;
   }
 }

@@ -1,7 +1,9 @@
 export type LikeType = {
     id:number;
     userId:string;
+    user: UserType;
     postId:string;
+    post: PostType;
     createdAt:Date;
     updatedAt:Date;
 }
@@ -15,7 +17,7 @@ export type PostType = {
     id: number;
     title: string;
     slug: string;
-    user: User;
+    user: UserType;
     content: string;
     thumbnail: string | null;
     published: boolean;
