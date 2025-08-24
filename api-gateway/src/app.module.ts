@@ -11,6 +11,7 @@ import { GraphQLModule } from '@nestjs/graphql';
 import { ApolloDriver, ApolloDriverConfig, ApolloGatewayDriver, ApolloGatewayDriverConfig } from '@nestjs/apollo';
 import { JwtService } from '@nestjs/jwt';
 import { IntrospectAndCompose, RemoteGraphQLDataSource } from '@apollo/gateway';
+import { RoleModule } from './role/role.module';
 import  * as dayjs from 'dayjs';
 
 @Module({
@@ -82,6 +83,7 @@ import  * as dayjs from 'dayjs';
       }),
       inject: [ConfigService],
     }),
+    RoleModule,
   ],
   controllers: [AppController],
   providers: [

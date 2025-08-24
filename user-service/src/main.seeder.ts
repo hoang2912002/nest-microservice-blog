@@ -7,7 +7,7 @@ import { UserSeeder } from './user/entities/user.seed';
 async function bootstrap() {
   const app = await NestFactory.createApplicationContext(AppModule);
   const seeder = app.get(UserSeeder);
-  await seeder.seed(100);
+  await seeder.seed(500000);
   await app.close();
 }
 

@@ -4,6 +4,7 @@ import { Notification } from './entities/notification.entity';
 import { User } from 'src/user/entities/user.entity';
 import { UserService } from 'src/user/user.service';
 import { CreateNotificationDTO } from './dto/create-notification.input';
+import { UpdateNotificationDTO } from './dto/update-notification.input';
 
 @Resolver(() => Notification)
 export class NotificationResolver {
@@ -62,5 +63,12 @@ export class NotificationResolver {
   createNotification_ByAdmin(
     @Args("createNotificationDTO") createNotificationDTO: CreateNotificationDTO){
     return this.notificationService.createNotification_ByAdmin(createNotificationDTO)
+  }
+
+  @Mutation(() => Notification, {name: "updateNotification_ByAdmin"})
+  updateNotification_ByAdmin(
+    @Args("updateNotificationDTO") updateNotificationDTO: UpdateNotificationDTO
+  ){
+    return this.notificationService.updateNotification_ByAdmin(updateNotificationDTO)
   }
 }

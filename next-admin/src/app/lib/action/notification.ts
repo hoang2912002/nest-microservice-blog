@@ -2,9 +2,10 @@
 import { convertTakeSkip } from "@/app/helper/common"
 import { FetchGraphQL } from "../api/fetchGraphAPI"
 import { print } from "graphql"
-import { CREATE_NOTIFICATION_BY_ADMIN, GET_ALL_NOTIFICATION_BY_ADMIN } from "../graphQuery/notification"
-import { CreateNotificationState } from "../type/notificationType"
-import { CreateNotificationSchema } from "../zod/notificationSchema"
+import { CREATE_NOTIFICATION_BY_ADMIN, GET_ALL_NOTIFICATION_BY_ADMIN, UPDATE_NOTIFICATION_BY_ADMIN } from "../graphQuery/notification"
+import { CreateNotificationState, UpdateNotificationState } from "../type/notificationType"
+import { CreateNotificationSchema, UpdateNotificationSchema } from "../zod/notificationSchema"
+import { UpdateCommentSchema } from "../zod/commentSchema"
 
 export const getAllNotification = async ({
     page,
@@ -39,4 +40,22 @@ export const createNotification = async (
         input: validate.data
     },false)
     return data?.data?.createNotification_ByAdmin
+}
+
+export const updateNotification = async(
+    state: UpdateNotificationState,
+    formData: FormData
+) => {
+    const validate = UpdateNotificationSchema.safeParse(Object.fromEntries(formData.entries()))
+    if(!validate.success){
+        const errors = validate.error.issues;
+        const paths = errors.map(err => err.path.join('.'));
+        return {
+            errorFields: paths
+        }
+    }
+    const data = await FetchGraphQL(print(UPDATE_NOTIFICATION_BY_ADMIN),{
+        input: validate.data
+    })
+    return data?.data?.updateNotification_ByAdmin
 }

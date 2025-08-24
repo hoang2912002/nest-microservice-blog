@@ -10,6 +10,7 @@ export const fetchAuthRestApi = async (
     isPublic=false
 ) => {
     const url = await process.env.NEXT_PUBLIC_BACKEND_URL!; 
+    console.log(url,subUrl)
     const headers: Record<string, string> = {
         "Content-Type": "application/json",
     }

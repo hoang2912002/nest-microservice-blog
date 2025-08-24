@@ -83,7 +83,7 @@ export function PaginationPage<TData>({
                         size="icon"
                         className="size-8"
                         onClick={() => handleChangeCurrentPage(currentPage + 1)}
-                        disabled={isLoading || currentPage >= totalPages}
+                        disabled={isLoading || currentPage >=  Math.ceil(totalPages / (table.getState().pagination.pageSize))}
                     >
                         <ChevronRight />
                     </Button>

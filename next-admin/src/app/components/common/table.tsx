@@ -74,11 +74,17 @@ const TableShadcn = <TData, TValue>({
         pageIndex: +DEFAULT_PAGE - 1,
         pageSize: DEFAULT_PAGESIZE,
     })
+    const [dataTable,setDataTable] = useState([])
     useEffect(() => {
         handleChangeCurrentPage(pagination.pageIndex + 1)
         handleChangePageSize(pagination.pageSize)
         refetch()
     }, [pagination])
+    useEffect(() => {
+        if(data?.length > 0){
+            setDataTable(data)
+        }
+    },[data])
     const enhancedColumns: ColumnDef<TData, TValue>[] = columns.map((col) => {
         if (isLoading) {
             return {

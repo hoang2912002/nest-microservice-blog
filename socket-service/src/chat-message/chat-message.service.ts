@@ -44,4 +44,8 @@ export class ChatMessageService {
   async setStateMessage(chatSessionId: string, receiverId: string){
     return await lastValueFrom(this.clientProxy.send("setStateMessage",{chatSessionId,receiverId}));
   }
+
+  async chatWithAI(message: string){
+    return await lastValueFrom(this.clientProxy.send("chatWithAI",{message}));
+  }
 }

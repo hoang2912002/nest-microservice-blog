@@ -1,6 +1,6 @@
 import { BadRequestException, HttpStatus, Inject, Injectable, OnModuleInit} from '@nestjs/common';
-import { SignInGoogleDto, SignUpDto, VerifyTokenDto } from './dto/create-user.dto';
-import { UpdateUserDto } from './dto/update-user.dto';
+import { CreateUserDto, SignInGoogleDto, SignUpDto, VerifyTokenDto } from './dto/create-user.dto';
+import { UpdateUserDto, UpdateUserInfoDto } from './dto/update-user.dto';
 import { User } from './entities/user.entity';
 import { Model } from 'mongoose';
 import { InjectModel } from '@nestjs/mongoose';
@@ -10,15 +10,21 @@ import { MailerService } from '@nestjs-modules/mailer';
 import { v4 as uuidv4 } from 'uuid';
 import * as dayjs from 'dayjs'
 import { ClientProxy } from '@nestjs/microservices';
+import { User_Test, UserTestDocument } from 'src/user-test/entities/user-test.entity';
 @Injectable()
-export class UserService {
+export class UserService  {
+  
   constructor(
     private readonly mailerService: MailerService,
+    @InjectModel(User_Test.name) 
+    private readonly userTestModel: Model<UserTestDocument>,
+
     @InjectModel(User.name) 
     private userModule: Model<User>, 
     @Inject(PRODUCT_SERVICE)
     private readonly productService:ClientProxy
   ){}
+  
   // async onModuleInit(): Promise<void> {
   //   try {
   //     await this.productService.connect();
@@ -50,6 +56,7 @@ export class UserService {
     return data;
   }
 
+  
   async update({id,updateUserDto}:{id: string, updateUserDto: UpdateUserDto}) {
     const {name,email,gender,avatar} = updateUserDto
     const checkEmail = await this.isEmailExist(email,id);
@@ -270,6 +277,71 @@ export class UserService {
     return await this.userModule.find({
       roleId: "1010-002"
     }).select("_id name roleId")
+  }
+
+  async createUser_ByAdmin(createUserDto: CreateUserDto){
+    const {avatar, password, email, ...dataQuery} = createUserDto
+    const checkUser = await this.isEmailExist(email)
+    if(checkUser){
+      return errorResponse(`Email: ${email} đã tồn tại!`, HttpStatus.NOT_FOUND)
+    }
+    const hashPassword = await convertPassword(password);
+    const codeId = uuidv4();
+    const data = await this.userTestModel.create({
+      email,
+      password:hashPassword,
+      avatar: avatar?.trim() ? avatar : null,
+      codeId,
+      codeExpired:dayjs().add(5,'minutes'),
+      ...dataQuery
+    })
+    this.mailerService
+      .sendMail({
+        to: data?.email,
+        subject: 'Activated your account at @Next-nestjs',
+        template: 'register_mail',
+        context:{
+          name: data?.name,
+          codeId
+        }
+      }) 
+    return {data:{
+      _id:data.id
+    }
+    }
+  }
+
+  async updateUser_ByAdmin(updateUserDto: UpdateUserInfoDto){
+    const {_id,avatar, email, ...dataQuery} = updateUserDto
+    const checkUser = await this.isEmailExist(email,_id)
+    if(checkUser){
+      return errorResponse(`Email: ${email} đã tồn tại!`, HttpStatus.NOT_FOUND)
+    }
+    const data = await this.userTestModel.findByIdAndUpdate(
+      _id,
+      {
+        email,
+        avatar: avatar?.trim() ? avatar : null,
+        ...dataQuery
+      },
+      { new: true }
+    )
+    return {
+      data:{_id:data?.id}
+    }
+  }
+
+  async deleteUser_ByAdmin(_id: string){
+    const checkUser = await this.userTestModel.findById(_id)
+    if(!checkUser){
+      return errorResponse(`User: ${_id} không tồn tại!`, HttpStatus.NOT_FOUND)
+    }
+    const data = await this.userTestModel.findByIdAndDelete(_id)
+    return {
+      data: {
+        success: data ? true : false
+      }
+    }
   }
 }
 

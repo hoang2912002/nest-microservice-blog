@@ -10,6 +10,8 @@ import { join } from 'path';
 import { HandlebarsAdapter } from '@nestjs-modules/mailer/dist/adapters/handlebars.adapter';
 import { ClientProxyModule } from './clientModule';
 import { ChatMessageModule } from './chat-message/chat-message.module';
+import { ChatAiMessageModule } from './chat-ai-message/chat-ai-message.module';
+import { UserTestModule } from './user-test/user-test.module';
 
 @Module({
   imports: [
@@ -53,7 +55,9 @@ import { ChatMessageModule } from './chat-message/chat-message.module';
     UserModule,
     RoleModule,
     ClientProxyModule,
-    ChatMessageModule
+    ChatMessageModule,
+    ChatAiMessageModule,
+    UserTestModule
   ],
   controllers: [AppController],
   providers: [AppService],

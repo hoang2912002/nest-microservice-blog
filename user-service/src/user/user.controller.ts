@@ -2,7 +2,7 @@ import { Controller } from '@nestjs/common';
 import { MessagePattern, Payload } from '@nestjs/microservices';
 import { UserService } from './user.service';
 import { CreateUserDto, SignInGoogleDto, SignUpDto, VerifyTokenDto } from './dto/create-user.dto';
-import { UpdateUserDto } from './dto/update-user.dto';
+import { UpdateUserDto, UpdateUserInfoDto } from './dto/update-user.dto';
 
 @Controller()
 export class UserController {
@@ -88,5 +88,25 @@ export class UserController {
   @MessagePattern("getAllAdminList")
   async getAllAdminList(){
     return await this.userService.getAllAdminList()
+  }
+
+  @MessagePattern("createUser_ByAdmin")
+  createUser_ByAdmin(
+    @Payload() createUserDto: CreateUserDto
+  ){
+    return this.userService.createUser_ByAdmin(createUserDto)
+  }
+  
+  @MessagePattern("updateUser_ByAdmin")
+  updateUser_ByAdmin(
+    @Payload() updateUserDto: UpdateUserInfoDto
+  ){
+    return this.userService.updateUser_ByAdmin(updateUserDto)
+  }
+  @MessagePattern("deleteUser_ByAdmin")
+  deleteUser_ByAdmin(
+    @Payload() input: string
+  ){
+    return this.userService.deleteUser_ByAdmin(input)
   }
 }

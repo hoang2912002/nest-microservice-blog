@@ -22,6 +22,9 @@
   },
   "dependencies": {
     "@faker-js/faker": "^9.9.0",
+    "@langchain/community": "^0.3.53",
+    "@langchain/core": "^0.3.72",
+    "@langchain/openai": "^0.6.9",
     "@nestjs-modules/mailer": "^2.0.2",
     "@nestjs/common": "^11.0.1",
     "@nestjs/config": "^4.0.2",
@@ -36,9 +39,11 @@
     "class-validator": "^0.14.2",
     "dayjs": "^1.11.13",
     "ioredis": "^5.6.1",
+    "langchain": "^0.3.31",
     "mongoose": "^8.16.1",
     "nodemailer": "^7.0.4",
     "nodemailer-express-handlebars": "^7.0.0",
+    "openai": "^4.62.1",
     "reflect-metadata": "^0.2.2",
     "rxjs": "^7.8.1",
     "uuid": "^11.1.0"

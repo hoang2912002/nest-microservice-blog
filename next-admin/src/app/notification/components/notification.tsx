@@ -11,6 +11,8 @@ import { getAllPost_ForComment } from "@/app/lib/action/post";
 import { getAllNotification } from "@/app/lib/action/notification";
 import NotificationCreate from "./notificationCreate";
 import { getAllComment_ForSelect } from "@/app/lib/action/comment";
+import NotificationView from "./notificationView";
+import NotificationEdit from "./notificationUpdate";
 const AllNotification = () => {
     const [currentPage,setCurrentPage] = useState(DEFAULT_PAGE)
     const [pageSize,setPageSize] = useState(DEFAULT_PAGESIZE)
@@ -137,32 +139,40 @@ const AllNotification = () => {
                 pageSize={pageSize}
                 handleShowDialog={handleShowDialog}
             />
-            {/* {
+            {
                 !notificationQuery.isLoading && (
                     <div className="">
-                        <LikeView 
+                        <NotificationView 
                             openDialog={openDialog} 
                             valueResponse={valueResponse} 
                             handleShowDialog={handleShowDialog}
                             postData={postQuery.data} 
                             isLoading={postQuery.isLoading} 
-                            authorData={authorQuery.data} 
-                            isLoadingAuthor={authorQuery.isLoading}
+                            senderData={senderQuery.data} 
+                            isLoadingSender={senderQuery.isLoading}
+                            receiverData={receiverQuery.data} 
+                            isLoadingReceiver={receiverQuery.isLoading}
+                            commentData={commentQuery.data}
+                            isLoadingComment={commentQuery.isLoading}
                         />
-                        <LikeEdit 
+                        <NotificationEdit 
                             openDialog={openDialog} 
                             valueResponse={valueResponse} 
                             handleShowDialog={handleShowDialog} 
                             postData={postQuery.data} 
                             isLoading={postQuery.isLoading} 
-                            authorData={authorQuery.data} 
-                            isLoadingAuthor={authorQuery.isLoading}
+                            senderData={senderQuery.data} 
+                            isLoadingSender={senderQuery.isLoading}
+                            receiverData={receiverQuery.data} 
+                            isLoadingReceiver={receiverQuery.isLoading}
+                            commentData={commentQuery.data}
+                            isLoadingComment={commentQuery.isLoading}
                             handleCallRefetch={handleCallRefetch}
                             refetchData={notificationQuery.refetch}
                         />
                     </div>
                 )
-            } */}
+            }
         </>
     )
 }

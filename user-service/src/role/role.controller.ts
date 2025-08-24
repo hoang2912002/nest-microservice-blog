@@ -8,6 +8,11 @@ import { UpdateRoleDto } from './dto/update-role.dto';
 export class RoleController {
   constructor(private readonly roleService: RoleService) {}
 
+  @MessagePattern("getAllRole")
+  getAllRole(){
+    return this.roleService.getAllRole()
+  }
+
   @MessagePattern('createRole')
   create(@Payload() createRoleDto: CreateRoleDto) {
     return this.roleService.create(createRoleDto);

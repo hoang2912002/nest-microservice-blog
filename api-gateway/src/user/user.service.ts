@@ -2,7 +2,8 @@ import { Inject, Injectable } from '@nestjs/common';
 import { USER_SERVICE } from 'src/constants';
 import { ClientProxy } from '@nestjs/microservices';
 import { firstValueFrom, lastValueFrom } from 'rxjs';
-import { UpdateUserDto } from './dto/update-user.dto';
+import { UpdateUserDto, UpdateUserInfoDto } from './dto/update-user.dto';
+import { CreateUserDto } from './dto/create-user.dto';
 
 @Injectable()
 export class UserService {
@@ -31,5 +32,24 @@ export class UserService {
 
   async getAllAuthor(){
     return await lastValueFrom(this.userServiceClient.send("getAllAuthor",""))
+  }
+
+  async getAllUserTest({skip,take}:{
+    skip:number,
+    take:number
+  }){
+    return await lastValueFrom(this.userServiceClient.send("getAllUserTest",{skip,take}))
+  }
+
+  async createUser(createUserDto:CreateUserDto){
+    return await lastValueFrom(this.userServiceClient.send("createUser_ByAdmin",createUserDto))
+  }
+
+  async updateUser(updateUserDto:UpdateUserInfoDto){
+    return await lastValueFrom(this.userServiceClient.send("updateUser_ByAdmin",updateUserDto))
+  }
+
+  async deleteUser(input: string){
+    return await lastValueFrom(this.userServiceClient.send("deleteUser_ByAdmin",input))
   }
 }

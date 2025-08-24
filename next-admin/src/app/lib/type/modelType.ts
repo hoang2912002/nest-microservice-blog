@@ -29,13 +29,15 @@ export type PostType = {
 }
 
 export type UserType = {
-    _id: string;
+    _id?: string;
     name:string;
     gender:boolean;
     email:string;
-    password: string | null;
+    password?: string;
     avatar:string;
-    roleId:string
+    roleId:string;
+    accountType?: string;
+    isActive?: boolean
 }
 
 export type CommentType = {
@@ -64,4 +66,10 @@ export type NotificationType = {
     comment?: Comment
     isRead: boolean
 
+}
+
+export type RoleType = {
+    _id: any,
+    name: string,
+    slug: string,
 }

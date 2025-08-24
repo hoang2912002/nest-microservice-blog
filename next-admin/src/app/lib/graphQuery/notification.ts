@@ -40,3 +40,11 @@ export const CREATE_NOTIFICATION_BY_ADMIN = gql`
         }
     }
 `
+
+export const UPDATE_NOTIFICATION_BY_ADMIN = gql`
+    mutation updateNotification_ByAdmin($input: UpdateNotificationDTO!){
+        updateNotification_ByAdmin(updateNotificationDTO: $input){
+            id
+        }
+    }
+`

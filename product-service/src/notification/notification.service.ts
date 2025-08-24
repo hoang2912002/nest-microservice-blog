@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { CreateNotificationDTO, CreateNotificationInput } from './dto/create-notification.input';
 import { PrismaService } from 'src/prisma/prisma.service';
+import { UpdateNotificationDTO } from './dto/update-notification.input';
 
 @Injectable()
 export class NotificationService {
@@ -82,5 +83,22 @@ export class NotificationService {
         ...createNotificationDTO
       }
     })
+  }
+
+  async updateNotification_ByAdmin(updateNotificationDTO: UpdateNotificationDTO){
+    const {id, ...dataUpdate} = updateNotificationDTO
+    if(!id){
+      throw new Error("Can not found id for update")
+    }
+    
+    const data = await this.prismaService.notification.update({
+      where:{
+        id
+      },
+      data:{
+        ...dataUpdate
+      }
+    })
+    return data
   }
 }
