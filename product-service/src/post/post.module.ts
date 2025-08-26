@@ -7,9 +7,10 @@ import { UserService } from 'src/user/user.service';
 import { UserModule } from 'src/user/user.module';
 import { ClientProxyModule } from 'src/clientModule';
 import { SupbaseService } from 'src/supbase/supbase.service';
+import { ElasticSearchModule } from 'src/elastic-search/elastic-search.module';
 
 @Module({
-  imports:[ClientProxyModule],
+  imports:[ClientProxyModule,ElasticSearchModule],
   providers: [PostResolver, PostService,PrismaService,UserService,SupbaseService],
 })
 export class PostModule {}

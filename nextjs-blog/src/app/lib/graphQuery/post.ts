@@ -41,3 +41,14 @@ export const GET_POST_BY_ID = gql`
     
     
 `
+export const GET_POST_FOR_ELASTIC = gql`
+    query getAllPost_ForElastic($content: String!) {
+        getAllPost_ForElastic(content: $content) {
+            id
+            title
+            thumbnail
+            createdAt
+            slug
+        }
+    }
+`

@@ -8,6 +8,7 @@ import { UserService } from 'src/user/user.service';
 import { Body, UploadedFile, UseInterceptors } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { take } from 'rxjs';
+import { PostElasticResponse } from './dto/search-post-elastic.input';
 
 @Resolver(() => Post)
 export class PostResolver {
@@ -100,5 +101,19 @@ export class PostResolver {
     @Args("take",{type:() => Float}) take: number
   ){
     return this.postService.getAllPost_ForComment(take)
+  }
+
+  @Query(() => [Post], {name: "getAllPost_ForElastic"})
+  getAllPost_ForElastic(
+    @Args("content",{type:() => String}) content: string
+  ){
+    return this.postService.getAllPost_ForElastic(content)
+  }
+
+  @Query(() => Int, {name:"countAllPost_ForElastic"})
+  countAllPost_ForElastic(
+    @Args("content",{type:() => String}) content: string
+  ){
+    return this.postService.countAllPost_ForElastic(content)
   }
 }

@@ -16,6 +16,9 @@ import { getSession, SessionUser } from "../lib/session"
 import Profile from "./profile"
 import SignInPanel from "./signIn_Out"
 import Notification from "./notification"
+import { Input } from "@/components/ui/input"
+import { Search } from "lucide-react"
+import SearchPost from "./searchPost"
 
 type Props = {
     session: SessionUser
@@ -38,7 +41,9 @@ const NavBar = ({session}:Props) => {
             window.addEventListener("scroll",handleScroll)
         }
     })
+    useEffect(() => {
 
+    },[])
     const isScrollDown = scrollPosition > 10
     const isHome = pathname === '/'
     return (
@@ -48,10 +53,14 @@ const NavBar = ({session}:Props) => {
                         '!text-gray-700': isScrollDown || !isHome
                     }
                 )}>
-            <div className="flex justify-end items-center gap-6 w-full">
+            <div className="flex justify-between items-center gap-6 w-full">
                 <h1 className="text-2xl font-bold">My Modern Blog</h1>
                 <NavigationMenu viewport={false}>
                     <NavigationMenuList className="flex items-center gap-4">
+                        <NavigationMenuItem>
+                            <SearchPost/>
+                            {/* <Input type="search" placeholder="Search post..." className="bg-gray-100 border-gray-500 " readOnly/> */}
+                        </NavigationMenuItem>
                         <NavigationMenuItem>
                             <NavigationMenuLink asChild className="font-bold !bg-transparent hover:!bg-transparent  text-lg">
                                 <Link href="/">Blog</Link>

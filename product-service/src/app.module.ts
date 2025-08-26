@@ -14,9 +14,15 @@ import { LikeModule } from './like/like.module';
 import { RedisModule } from './redis/redis.module';
 import { NotificationModule } from './notification/notification.module';
 import { SupbaseModule } from './supbase/supbase.module';
+import { ElasticSearchModule } from './elastic-search/elastic-search.module';
+import { ConfigModule } from '@nestjs/config';
 
 @Module({
   imports: [
+    ConfigModule.forRoot({
+      envFilePath: '.env',
+      isGlobal: true,
+    }),
     PrismaModule, 
     ProductModule, 
     ClientProxyModule,
@@ -51,6 +57,7 @@ import { SupbaseModule } from './supbase/supbase.module';
     RedisModule,
     NotificationModule,
     SupbaseModule,
+    ElasticSearchModule,
     
   ],
   controllers: [AppController],

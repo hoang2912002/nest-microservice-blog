@@ -48,7 +48,7 @@ const Comments = ({postId,user}:Props) => {
     return (
         <div className="p-2 rounded-md shadow-md">
             <h6 className="text-lg text-slate-700">Comment</h6>
-            {!!user && <AddComment postId={postId} user={user} refetch={refetch} defaultBtn={true}/>}
+            {user && <AddComment postId={postId} user={user} refetch={refetch} defaultBtn={true}/>}
             <div className="flex flex-col gap-2 pl-4">
                 {Array.isArray(data?.comments) && data.comments.map((comment)=> {
                     return (

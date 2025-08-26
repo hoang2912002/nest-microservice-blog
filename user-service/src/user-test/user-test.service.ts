@@ -1,4 +1,4 @@
-import { HttpStatus, Injectable, OnModuleInit } from '@nestjs/common';
+import { HttpStatus, Inject, Injectable, OnModuleInit } from '@nestjs/common';
 import { CreateUserTestDto } from './dto/create-user-test.dto';
 import { UpdateUserTestDto } from './dto/update-user-test.dto';
 import { Model } from 'mongoose';
@@ -6,13 +6,17 @@ import { User_Test, UserTestDocument } from './entities/user-test.entity';
 import { InjectModel } from '@nestjs/mongoose';
 import { UserService } from 'src/user/user.service';
 import { errorResponse } from 'src/util/helper';
+import { CACHE_MANAGER } from '@nestjs/cache-manager';
+import { Cache } from 'cache-manager';
 
 @Injectable()
 export class UserTestService implements OnModuleInit {
   constructor(
     @InjectModel(User_Test.name) 
     private readonly userTestModel: Model<UserTestDocument>,
-    private readonly userService: UserService
+    private readonly userService: UserService,
+    @Inject(CACHE_MANAGER) 
+    private cacheManager: Cache
   ) {}
   async onModuleInit() {
     // Đồng bộ index khi app start
@@ -28,6 +32,10 @@ export class UserTestService implements OnModuleInit {
     skip: number,
     take: number
   }){
+    const cacheValue = await this.cacheManager.get(`userSelect_${skip}_${take}`)
+    if(cacheValue){
+      return cacheValue
+    }
     const dataQuery = await this.userTestModel.aggregate([
       { $sort: { _id: 1 } },
       { $skip: skip },
@@ -98,15 +106,16 @@ export class UserTestService implements OnModuleInit {
     //     roleInfo: 1,
     //    } }
     // ]);
-
-
-    return {
+    const dataResponse = {
       data: {
         getAllUserList_ByAdmin,
         countAllUserList_ByAdmin
       },
       errorField: null
     }
+    await this.cacheManager.set(`userSelect_${skip}_${take}`, dataResponse,60000);
+
+    return dataResponse
   }
   async clearPlanCache() {
     // const collection: any = this.userTestModel.collection;

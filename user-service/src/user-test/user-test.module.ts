@@ -7,6 +7,7 @@ import { Role, RoleSchema } from 'src/role/entities/role.entity';
 import { User_Test, UserTestSchema } from './entities/user-test.entity';
 import { ClientProxyModule } from 'src/clientModule';
 import { UserService } from 'src/user/user.service';
+import { CacheModule } from '@nestjs/cache-manager';
 
 @Module({
   imports:[
@@ -15,7 +16,8 @@ import { UserService } from 'src/user/user.service';
       { name: User_Test.name, schema: UserTestSchema },
       { name: Role.name, schema: RoleSchema },
     ]),
-    ClientProxyModule
+    ClientProxyModule,
+    CacheModule.register(),
   ],
   controllers: [UserTestController],
   providers: [UserTestService, UserService],

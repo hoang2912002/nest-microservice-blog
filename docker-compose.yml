@@ -1,3 +1,26 @@
+# version: '3.8'
+
+# services:
+#   mongo-user:
+#     image: mongo:6.0
+#     container_name: mongo-user
+#     restart: always
+#     ports:
+#       - "27017:27017"  # chỉ mở port này nếu bạn cần truy cập từ bên ngoài
+#     environment:
+#       MONGO_INITDB_ROOT_USERNAME: root
+#       MONGO_INITDB_ROOT_PASSWORD: 123456
+#     volumes:
+#       - user-mongo-data:/data/db
+#     networks:
+#       - user-network
+
+# volumes:
+#   user-mongo-data:
+
+# networks:
+#   user-network:
+
 version: '3.8'
 
 services:
@@ -6,17 +29,43 @@ services:
     container_name: mongo-user
     restart: always
     ports:
-      - "27017:27017"  # chỉ mở port này nếu bạn cần truy cập từ bên ngoài
+      - "27017:27017"
     environment:
       MONGO_INITDB_ROOT_USERNAME: root
       MONGO_INITDB_ROOT_PASSWORD: 123456
     volumes:
       - user-mongo-data:/data/db
     networks:
-      - user-network
+      - backend-network
+
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:8.15.2
+    container_name: elasticsearch
+    environment:
+      - discovery.type=single-node
+      - ES_JAVA_OPTS=-Xms1g -Xmx1g
+      - xpack.security.enabled=false
+    ports:
+      - "9200:9200"
+    volumes:
+      - es-data:/usr/share/elasticsearch/data
+    networks:
+      - backend-network
+
+  kibana:
+    image: docker.elastic.co/kibana/kibana:8.15.2
+    container_name: kibana
+    environment:
+      - ELASTICSEARCH_HOSTS=http://elasticsearch:9200
+    ports:
+      - "5601:5601"
+    networks:
+      - backend-network
 
 volumes:
   user-mongo-data:
+  es-data:
 
 networks:
-  user-network:
+  backend-network:
+    driver: bridge

@@ -1,4 +1,4 @@
-import { HttpStatus, Injectable } from '@nestjs/common';
+import { HttpStatus, Inject, Injectable } from '@nestjs/common';
 import { CreatePostDTO, CreatePostInput } from './dto/create-post.input';
 import { UpdatePostDTO, UpdatePostInput } from './dto/update-post.input';
 import { PrismaService } from 'src/prisma/prisma.service';
@@ -8,11 +8,14 @@ import * as fs from 'fs';
 import * as fsMerge from 'fs/promises';
 import { SupbaseService } from 'src/supbase/supbase.service';
 import slugify from 'slugify';
+import { Client } from '@elastic/elasticsearch';
 @Injectable()
 export class PostService {
   constructor(
     private readonly prismaService: PrismaService,
-    private readonly supbaseService: SupbaseService
+    private readonly supbaseService: SupbaseService,
+    @Inject('ELASTIC_CLIENT') 
+    private readonly esClient: Client,
   ){}
 
   renderSlug(title: string){
@@ -23,7 +26,6 @@ export class PostService {
     });
   }
 
-  
   async create(createPostDTO: CreatePostDTO) {
     const slug = this.renderSlug(createPostDTO.title)
     const data  = await this.prismaService.post.create({
@@ -32,6 +34,23 @@ export class PostService {
         slug
       }
     })
+
+
+    await this.esClient.index({
+      index: 'posts',
+      id: data?.id.toString(),
+      document: {
+        title: data.title,
+        content: data.content,
+        slug: data.slug,
+        thumbnail: data.thumbnail,
+        authorId: data.authorId,
+        published: data.published,
+        createdAt: data.createdAt,
+        updatedAt: data.updatedAt,
+      },
+    });
+
     return data;
   }
 
@@ -54,6 +73,141 @@ export class PostService {
     }
   }
 
+  // async getAllPost_ForElastic(content: string){
+  //   try {
+  //     const whereCondition = {
+  //       OR: [
+  //         { title: { contains: content.toLowerCase() } },
+  //         { content: { contains: content.toLowerCase() } },
+  //       ],
+  //     };
+  //     const queryES = this.esClient.search({
+  //       index: 'posts',
+  //       query: {
+  //         multi_match: {
+  //           query: content,
+  //           fields: ['title', 'content'],
+  //         },
+  //       },
+  //     });
+  //     const queryCountPost_Prisma = this.prismaService.post.count({
+  //       where:  whereCondition
+  //     })
+  //     const [esResult,prisResultCount] = await Promise.all([
+  //       queryES,queryCountPost_Prisma
+  //     ])
+  //     let hits = esResult.hits.hits.map((h: any) => h._source);
+  //     let count_El_Record = esResult.hits.total?.value
+  //     if(!hits.length || +prisResultCount !== +count_El_Record){
+  //       await this.prismaService.post.findMany({
+  //         where: whereCondition
+  //       })
+
+  //     }
+  //     return 1
+  //   } catch (error) {
+  //     throw new Error('Lỗi máy chủ!')
+  //   }
+  // }
+
+  async getAllPost_ForElastic(content: string) {
+    try {
+      const whereCondition = {
+        OR: [
+          { title: { contains: content.toLowerCase() } },
+          { content: { contains: content.toLowerCase() } },
+        ],
+      };
+      let queryES
+      // 1. Search Elastic trước
+      if (content && content.trim() !== "") {
+        // Có content → search theo nội dung
+        queryES = this.esClient.search({
+          index: "posts",
+          size: 50,
+          query: {
+            multi_match: {
+              query: content,
+              fields: ["title", "content"],
+            },
+          },
+        });
+      } else {
+        // Không có content → lấy 50 bài mới nhất
+        queryES = this.esClient.search({
+          index: "posts",
+          size: 50,
+          sort: [{ createdAt: { order: "desc" } }],
+          query: { match_all: {} },
+        });
+      }
+
+      // 2. Đếm tổng bản ghi trong Prisma
+      const queryPosts = this.prismaService.post.findMany({
+        where: whereCondition,
+      });
+
+      const [esResult, prismaPosts] = await Promise.all([
+        queryES,
+        queryPosts,
+      ]);
+      const prismaCount = prismaPosts.length;
+      const hits = esResult.hits.hits.map((h: any) => ({
+        id: parseInt(h._id),
+        ...h._source,
+      }));
+      const esTotal = (esResult.hits.total as any)?.value ?? esResult.hits.total ?? 0;
+
+
+      // 3. Nếu số lượng khác nhau → check record thiếu
+      if (+prismaCount !== +esTotal && +prismaCount > + esTotal) {
+        // Lấy tất cả record trong Prisma
+        const esIds = new Set(hits.map((h: any) => h.id));
+
+        // Lọc ra những record còn thiếu
+        const missingPosts = prismaPosts.filter((p) => !esIds.has(p.id));
+
+        if (missingPosts.length > 0) {
+          // Insert vào Elastic
+          const body = missingPosts.flatMap((doc) => [
+            { index: { _index: 'posts', _id: doc.id.toString() } },
+            {
+              title: doc.title,
+              content: doc.content,
+              slug: doc.slug,
+              thumbnail: doc.thumbnail,
+              authorId: doc.authorId,
+              published: doc.published,
+              createdAt: doc.createdAt,
+              updatedAt: doc.updatedAt,
+            },
+          ]);
+
+          await this.esClient.bulk({ refresh: true, body });
+        }
+
+        // Trả về dữ liệu đã đồng bộ
+        return [...hits, ...missingPosts];
+      }
+
+      // 4. Trả về data từ Elastic (đủ rồi thì khỏi sync)
+      return hits;
+    } catch (error) {
+      console.error(error);
+      throw new Error('Lỗi máy chủ!');
+    }
+  }
+
+  async countAllPost_ForElastic(content: string){
+    return this.prismaService.post.count({
+      where:  {
+        OR: [
+          { title: { contains: content.toLowerCase() }},
+          { content: { contains: content.toLowerCase() }},
+        ],
+      }
+    })
+  }
   async findOne(id: number) {
     try {
       return await this.prismaService.post.findFirst({

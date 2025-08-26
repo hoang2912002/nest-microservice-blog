@@ -51,7 +51,6 @@ const Notification = ({ user }: Props) => {
         },100)
     }
     const handleOnclick = (notification: Notification) => {
-        console.log(notification)
         if (!notification) return;
         isReadComment.mutate(notification?.id)
         const url = `/blog/${notification?.post?.slug}/${notification?.post?.id}?commentId=${notification.commentId}&notificationId=${notification.id}`;
