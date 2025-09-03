@@ -7,6 +7,8 @@ import { SOCKET_SERVICE, USER_SERVICE } from 'src/constants';
 import { lastValueFrom } from 'rxjs';
 import { da } from '@faker-js/faker/.';
 import { RedisService } from 'src/redis/redis.service';
+import { CACHE_MANAGER } from '@nestjs/cache-manager';
+import { Cache } from 'cache-manager';
 async function buildCommentTree(comments: any[], parentId: number | null = null): Promise<any[]> {
   const result = await Promise.all(
     comments
@@ -25,7 +27,7 @@ export class CommentService {
     private readonly prismaService: PrismaService,
     @Inject(SOCKET_SERVICE) private readonly socketClient: ClientProxy,
     private readonly redisClient: RedisService,
-
+    @Inject(CACHE_MANAGER) private cacheManager: Cache
   ){}
   create(createCommentInput: CreateCommentInput) {
     return 'This action adds a new comment';
@@ -55,6 +57,10 @@ export class CommentService {
     skip:number,
     take:number
   }){
+    const cacheValue = await this.cacheManager.get(`comment_post_${postId}_${skip}_${take}`)
+    if(cacheValue){
+      return cacheValue
+    }
     const data = await this.prismaService.comment.findMany({
       where:{
         postId,
@@ -70,7 +76,9 @@ export class CommentService {
       },
     })
     const renderData  = await buildCommentTree(data)
-    return renderData.slice(skip, skip + take);
+    const dataRes =  renderData.slice(skip, skip + take);
+    await this.cacheManager.set(`comment_post_${postId}_${skip}_${take}`, dataRes,60000);
+    return dataRes
   }
 
   async countAll_PostComment(postId:number){

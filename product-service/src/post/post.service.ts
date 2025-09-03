@@ -9,6 +9,8 @@ import * as fsMerge from 'fs/promises';
 import { SupbaseService } from 'src/supbase/supbase.service';
 import slugify from 'slugify';
 import { Client } from '@elastic/elasticsearch';
+import { CACHE_MANAGER } from '@nestjs/cache-manager';
+import { Cache } from 'cache-manager';
 @Injectable()
 export class PostService {
   constructor(
@@ -16,6 +18,7 @@ export class PostService {
     private readonly supbaseService: SupbaseService,
     @Inject('ELASTIC_CLIENT') 
     private readonly esClient: Client,
+    @Inject(CACHE_MANAGER) private cacheManager: Cache
   ){}
 
   renderSlug(title: string){
@@ -56,10 +59,16 @@ export class PostService {
 
   async findAll({skip,take}:{skip:number,take:number}) {
     try {
-      return await this.prismaService.post.findMany({
+      const cacheValue = await this.cacheManager.get(`post_${skip}_${take}`)
+      if(cacheValue){
+        return cacheValue
+      }
+      const dataRes =  await this.prismaService.post.findMany({
         skip,
         take,
       })
+      await this.cacheManager.set(`post_${skip}_${take}`, dataRes,60000);
+      return dataRes
     } catch (error) {
       throw new Error('Lỗi máy chủ!')
     }

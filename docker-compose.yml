@@ -61,6 +61,31 @@ services:
       - "5601:5601"
     networks:
       - backend-network
+  zookeeper:
+    # Docker image
+    image: wurstmeister/zookeeper
+    ports: 
+      # Port đầu tiên là cùa local, port thứ 2 là của docker
+      # Dấu "-" => là phần tử trong dnah sách yml (ở đây là cặp port)
+      # Bên trái là port local
+      # Bên phải là port container zookeeper lắng nghe
+      - "2181:2181"
+
+
+  kafka:
+    # Kafka container này dùng image từ Docker Hub do wurstmeister cung cấp
+    image: wurstmeister/kafka
+    ports:
+      - "9092:9092"
+    environment:
+      # Kafka lắng nghe kết nối trên tất cả các địa chỉ ip port 9092
+      KAFKA_LISTENERS: PLAINTEXT://0.0.0.0:9092
+      # Đây là địa chỉ mà Kafka sẽ nói với client 
+      # (client biết địa chỉ nào để connect).
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://localhost:9092
+      # Kafka cần Zookeeper để lưu metadata (vì nó chưa chạy ở chế độ KRaft)
+      # zookeeper:2181 => zookeeper là tên container của Zookeeper (Docker Compose tự tạo DNS cho nó).
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
 
 volumes:
   user-mongo-data:
