@@ -40,3 +40,6 @@ export class User {
 }
 
 export const UserSchema = SchemaFactory.createForClass(User);
+UserSchema.index({ createdAt: 1 });
+UserSchema.index({ email: 1 });
+UserSchema.index({ email: 1, createdAt: -1 });

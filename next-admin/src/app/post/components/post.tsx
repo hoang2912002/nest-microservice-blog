@@ -2,7 +2,7 @@
 import { getAllPost } from "@/app/lib/action/post";
 import { DEFAULT_PAGE, DEFAULT_PAGESIZE } from "@/constant";
 import { useMutation, useQueries, useQuery } from "@tanstack/react-query";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { getAllPostColumns } from "./columns";
 import TableShadcn from "@/app/components/common/table";
 import PostView from "./postView";
@@ -27,6 +27,12 @@ const AllPost = () => {
         delete:{} as PostType,
         create: {} as PostType
     }
+    const [cursor, setCursor] = useState<{ lastId?: string, count: number, currentLength: number }>({
+        lastId:"",
+        count:0,
+        currentLength:0
+    })
+    const [arrAuthor, setArrAuthor] = useState<any[]>([]);
     const [openDialog,setOpenDialog] = useState(dialogKey)
     const [valueResponse,setValueResponse] = useState(dialogValue)
     // const {data, isLoading, refetch} = useQuery({
@@ -52,10 +58,29 @@ const AllPost = () => {
             },
             {
                 queryKey: ['GET_ALL_AUTHOR',currentPage],
-                queryFn: () => getAllAuthor(),
+                queryFn: () => getAllAuthor(cursor.lastId)
             },
         ],
     })
+    useEffect(()=>{
+        if(
+            authorQuery.data && 
+            authorQuery.data.getAllAuthor_ByAdmin &&  
+            authorQuery.data.getAllAuthor_ByAdmin.length > 0 &&
+            authorQuery.isSuccess
+        ){
+            setArrAuthor((prev) => [
+                ...prev,
+                ...authorQuery.data.getAllAuthor_ByAdmin
+            ])
+
+            setCursor((prev) => ({
+                lastId: authorQuery.data.getAllAuthor_ByAdmin[authorQuery.data.getAllAuthor_ByAdmin.length - 1]?._id,
+                count: authorQuery.data.countAllAuthor_ByAdmin,
+                currentLength: prev.currentLength + parseInt(authorQuery.data.getAllAuthor_ByAdmin.length)
+            }))
+        }
+    },[authorQuery.isSuccess, authorQuery.data])
     const handleShowDialog = (name,value,item = {},refetchData=false) => {
         setOpenDialog((prev) => {
             const updated = {
@@ -75,10 +100,29 @@ const AllPost = () => {
             postQuery.refetch()
         }
     }
+    const handleCallRefetch = (type: "AUTHOR", cb?: (newValues: any) => void) => {
+        if(cursor.currentLength < cursor.count){
+            authorQuery
+                .refetch()
+                .then((res) => {
+                if (cb) cb(res.data.getAllAuthor_ByAdmin);
+                })
+                .catch((err) => {
+                console.error(err);
+                });
+        }
+    };
+    console.log(arrAuthor)
     return(
         <>
             <div className="mb-2">
-            <PostCreate openDialog={openDialog} handleShowDialog={handleShowDialog} authorData={authorQuery.data} isLoading={authorQuery.isLoading}/>
+            <PostCreate 
+                openDialog={openDialog} 
+                handleShowDialog={handleShowDialog} 
+                authorData={arrAuthor} 
+                isLoading={authorQuery.isLoading}
+                handleCallRefetch={handleCallRefetch}
+            />
 
             </div>
             <TableShadcn 

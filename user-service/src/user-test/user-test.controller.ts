@@ -12,7 +12,12 @@ export class UserTestController {
   getAllUserTest(
     @Payload() limitData: any,
   ){
-    return this.userTestService.getAllUserTest({skip:parseInt(limitData.skip),take: parseInt(limitData.take)})
+    return this.userTestService.getAllUserTest({
+      skip:parseInt(limitData.skip),
+      take: parseInt(limitData.take),
+      cursor:limitData.cursor
+      
+    })
   }
 
   @MessagePattern('createUserTest')

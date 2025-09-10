@@ -28,3 +28,25 @@ export class CreatePostDTO {
   @Field(() => String, {nullable:true})
   slug?: string
 }
+@InputType()
+export class CursorInput {
+  @Field(() => Int, { nullable: true })
+  firstId?: number;
+
+  @Field(() => Int, { nullable: true })
+  lastId?: number;
+
+  @Field(() => Int)
+  type: number;
+}
+@InputType()
+export class GetAllPostDTO {
+  @Field(() => Int)
+  skip:number
+
+  @Field(() => Int)
+  take: number
+
+  @Field(() => CursorInput, { nullable: true })
+  cursor?: CursorInput;
+}

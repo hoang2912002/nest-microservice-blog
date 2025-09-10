@@ -1,7 +1,7 @@
 import { HttpStatus, Inject, Injectable, OnModuleInit } from '@nestjs/common';
 import { CreateUserTestDto } from './dto/create-user-test.dto';
 import { UpdateUserTestDto } from './dto/update-user-test.dto';
-import { Model } from 'mongoose';
+import mongoose, { Model } from 'mongoose';
 import { User_Test, UserTestDocument } from './entities/user-test.entity';
 import { InjectModel } from '@nestjs/mongoose';
 import { UserService } from 'src/user/user.service';
@@ -27,18 +27,44 @@ export class UserTestService implements OnModuleInit {
 
   async getAllUserTest({
     skip,
-    take
+    take,
+    cursor
   }:{
     skip: number,
-    take: number
+    take: number,
+    cursor:{
+      type:number,
+      firstId?:string,
+      lastId?:string
+    }
   }){
+    const { type, firstId, lastId } = cursor;
     const cacheValue = await this.cacheManager.get(`userSelect_${skip}_${take}`)
     if(cacheValue){
       return cacheValue
     }
-    const dataQuery = await this.userTestModel.aggregate([
-      { $sort: { _id: 1 } },
-      { $skip: skip },
+    let matchStage: any = {};
+    let sortStage: any = { _id: 1 };
+    if (type === 0) {
+      // Trang đầu tiên
+      matchStage = {};
+      sortStage = { _id: 1 };
+    } else if (type === 1 && firstId) {
+      // Trang trước
+      matchStage = { _id: { $lt: new mongoose.Types.ObjectId(firstId) } };
+      sortStage = { _id: -1 };
+    } else if (type === 2 && lastId) {
+      // Trang sau
+      matchStage = { _id: { $gt: new mongoose.Types.ObjectId(lastId) } };
+      sortStage = { _id: 1 };
+    } else if (type === 3) {
+      // Trang cuối
+      matchStage = {};
+      sortStage = { _id: -1 };
+    }
+    const dataQuery = this.userTestModel.aggregate([
+      { $match: matchStage },
+      { $sort: sortStage },
       { $limit: take },
       {
         $lookup: {
@@ -48,15 +74,13 @@ export class UserTestService implements OnModuleInit {
           as: "roleInfo"
         }
       },
-      {
-        $unwind: "$roleInfo"
-      },
+      { $unwind: "$roleInfo" },
       {
         $project: {
           _id: 1,
           name: 1,
           gender: 1,
-          email:1,
+          email: 1,
           avatar: 1,
           roleId: 1,
           accountType: 1,

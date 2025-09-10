@@ -13,6 +13,9 @@ import { JwtService } from '@nestjs/jwt';
 import { IntrospectAndCompose, RemoteGraphQLDataSource } from '@apollo/gateway';
 import { RoleModule } from './role/role.module';
 import  * as dayjs from 'dayjs';
+import { ThrottlerGuard, ThrottlerModule, ThrottlerModuleOptions } from '@nestjs/throttler';
+import { ThrottleConfig } from 'rxjs';
+import { ThrottlerStorageRedisService } from '@nest-lab/throttler-storage-redis';
 
 @Module({
   imports: [
@@ -84,6 +87,24 @@ import  * as dayjs from 'dayjs';
       inject: [ConfigService],
     }),
     RoleModule,
+    ThrottlerModule.forRootAsync({
+      imports: [ConfigModule],
+      inject: [ConfigService],
+      useFactory: async (
+        configService: ConfigService,
+      ): Promise<ThrottlerModuleOptions> => ({
+        throttlers: [
+          {
+            ttl: parseInt(configService.get<string>('THROTTLE_TTL') ?? '1000', 10),
+            limit: parseInt(configService.get<string>('THROTTLE_LIMIT') ?? '100', 10),
+          },
+        ],
+        storage: new ThrottlerStorageRedisService({
+          host: configService.get<string>('REDIS_HOST') ?? '127.0.0.1',
+          port: parseInt(configService.get<string>('REDIS_PORT') ?? '6379', 10),
+        }),
+      }),
+    })
   ],
   controllers: [AppController],
   providers: [
@@ -91,6 +112,10 @@ import  * as dayjs from 'dayjs';
     {
       provide: APP_GUARD,
       useClass: JwtAuthGuard,
+    },
+    {
+      provide: APP_GUARD,
+      useClass: ThrottlerGuard,
     },
   ],
 })

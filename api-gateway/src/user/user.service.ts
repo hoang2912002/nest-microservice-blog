@@ -30,15 +30,21 @@ export class UserService {
     return await lastValueFrom(this.userServiceClient.send("deleteUserById",_id));
   }
 
-  async getAllAuthor(){
-    return await lastValueFrom(this.userServiceClient.send("getAllAuthor",""))
+  async getAllAuthor(
+    lastId: string,){
+    return await lastValueFrom(this.userServiceClient.send("getAllAuthor",{lastId}))
   }
-
-  async getAllUserTest({skip,take}:{
+  
+  async getAllArrUser({skip,take,cursor}:{
     skip:number,
-    take:number
+    take:number,
+    cursor:{
+      type:number,
+      firstId?:string,
+      lastId?:string
+    }
   }){
-    return await lastValueFrom(this.userServiceClient.send("getAllUserTest",{skip,take}))
+    return await lastValueFrom(this.userServiceClient.send("getAllArrUser",{skip,take,cursor}))
   }
 
   async createUser(createUserDto:CreateUserDto){

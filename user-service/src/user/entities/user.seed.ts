@@ -31,7 +31,7 @@ export class UserSeeder {
     const roles = await this.roleModel.find();
     console.log({roles})
     const userRole = roles.find(r => r.slug === ROLE_SLUG.USER);
-    const users: Partial<User_Test>[] = [];
+    const users: Partial<User>[] = [];
     for (let i = 0; i < count; i++) {
       users.push({
         name: faker.person.fullName(),
@@ -47,7 +47,7 @@ export class UserSeeder {
       });
     }
     console.log({users}, count)
-    await this.userTestModel.insertMany(users);
+    await this.userModel.insertMany(users);
     console.log(`✅ Seeded ${count} fake users`);
   }
 }

@@ -12,6 +12,8 @@ type Props<TData> = {
     isLoading?: boolean,
     handleChangeCurrentPage: (pageIndex: number) => void,
     handleChangePageSize: (pageSize: number) => void,
+    largeData?:boolean,
+    handleChangeGetIdLargeData?: (type: number) => void
 }
 
 
@@ -22,6 +24,8 @@ export function PaginationPage<TData>({
     handleChangeCurrentPage,
     handleChangePageSize,
     isLoading = false,
+    largeData = false,
+    handleChangeGetIdLargeData,
 }: Props<TData>) {
     const defaultText = "—"
     return (
@@ -64,7 +68,12 @@ export function PaginationPage<TData>({
                         variant="outline"
                         size="icon"
                         className="hidden size-8 lg:flex"
-                        onClick={() => handleChangeCurrentPage(1)}
+                        onClick={() => {
+                            handleChangeCurrentPage(1)
+                            if(largeData){
+                                handleChangeGetIdLargeData(0)
+                            }
+                        }}
                         disabled={isLoading || currentPage <= 1}
                     >
                         <ChevronsLeft />
@@ -73,7 +82,12 @@ export function PaginationPage<TData>({
                         variant="outline"
                         size="icon"
                         className="size-8"
-                        onClick={() => handleChangeCurrentPage(currentPage - 1)}
+                        onClick={() => {
+                            handleChangeCurrentPage(currentPage - 1)
+                            if(largeData){
+                                handleChangeGetIdLargeData(1)
+                            }
+                        }}
                         disabled={isLoading || currentPage <= 1}
                     >
                         <ChevronLeft />
@@ -82,7 +96,12 @@ export function PaginationPage<TData>({
                         variant="outline"
                         size="icon"
                         className="size-8"
-                        onClick={() => handleChangeCurrentPage(currentPage + 1)}
+                        onClick={() => {
+                            handleChangeCurrentPage(currentPage + 1)
+                            if(largeData){
+                                handleChangeGetIdLargeData(2)
+                            }
+                        }}
                         disabled={isLoading || currentPage >=  Math.ceil(totalPages / (table.getState().pagination.pageSize))}
                     >
                         <ChevronRight />
@@ -91,7 +110,12 @@ export function PaginationPage<TData>({
                         variant="outline"
                         size="icon"
                         className="hidden size-8 lg:flex"
-                        onClick={() => handleChangeCurrentPage(Math.ceil(totalPages / (table.getState().pagination.pageSize)))}
+                        onClick={() => {
+                            handleChangeCurrentPage(Math.ceil(totalPages / (table.getState().pagination.pageSize)))
+                            if(largeData){
+                                handleChangeGetIdLargeData(3)
+                            }
+                        }}
                         disabled={isLoading || currentPage >= Math.ceil(totalPages / (table.getState().pagination.pageSize))}
                     >
                         <ChevronsRight />

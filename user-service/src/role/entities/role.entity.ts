@@ -14,3 +14,4 @@ export class Role {
 }
 
 export const RoleSchema = SchemaFactory.createForClass(Role);
+RoleSchema.index({ slug: 1 });

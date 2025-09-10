@@ -1,7 +1,7 @@
 'use client'
 import { DEFAULT_PAGE, DEFAULT_PAGESIZE } from "@/constant";
 import { useMutation, useQueries, useQuery } from "@tanstack/react-query";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import TableShadcn from "@/app/components/common/table";
 import { getAllAuthor, getAllUser } from "@/app/lib/action/user";
 import { getAllUserColumns } from "./columns";
@@ -36,12 +36,16 @@ const AllUser = () => {
     }
     const [openDialog,setOpenDialog] = useState(dialogKey)
     const [valueResponse,setValueResponse] = useState(dialogValue)
-    
+    const [cursor, setCursor] = useState<{ firstId?: string; lastId?: string, type: number }>({
+        firstId:"0",
+        lastId:"0",
+        type:0
+    })
     const [userQuery, roleQuery] = useQueries({
         queries: [
             {
                 queryKey: ['GET_ALL_USER_BY_ADMIN', currentPage, pageSize],
-                queryFn: () => getAllUser({ page: currentPage, pageSize }),
+                queryFn: () => getAllUser({ page: currentPage, pageSize, cursor }),
             },
             {
                 queryKey: ['GET_ALL_ROLE_FROM_USER',currentPage],
@@ -49,6 +53,20 @@ const AllUser = () => {
             },
         ],
     })
+    useEffect(()=>{
+        if(
+            userQuery.data && 
+            userQuery.data.getAllUserList_ByAdmin &&  
+            userQuery.data.getAllUserList_ByAdmin.length > 0 &&
+            userQuery.isSuccess
+        ){
+            setCursor((prev) => ({
+                firstId: userQuery.data.getAllUserList_ByAdmin[0]?._id,
+                lastId: userQuery.data.getAllUserList_ByAdmin[userQuery.data.getAllUserList_ByAdmin.length - 1]?._id,
+                type: prev.type
+            }))
+        }
+    },[userQuery.isSuccess, userQuery.data])
     const handleShowDialog = (name,value,item = {},refetchData=false) => {
         setOpenDialog((prev) => {
             const updated = {
@@ -68,7 +86,12 @@ const AllUser = () => {
             userQuery.refetch()
         }
     }
-    
+    const handleChangeGetIdLargeData = (type: number) => {
+        setCursor((prev) => ({
+            ...prev,
+            type
+        }))
+    }
     return(
         <>
             <div className="mb-2">
@@ -92,6 +115,8 @@ const AllUser = () => {
                 currentPage={currentPage}
                 pageSize={pageSize}
                 handleShowDialog={handleShowDialog}
+                largeData={true}
+                handleChangeGetIdLargeData={handleChangeGetIdLargeData}
             />
             {
                 !userQuery.isLoading && (

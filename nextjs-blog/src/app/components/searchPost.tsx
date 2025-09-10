@@ -3,7 +3,7 @@
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { Search } from "lucide-react"
-import { useEffect, useState } from "react"
+import { useEffect, useRef, useState } from "react"
 import { getPostByElastic } from "../lib/action/post";
 import { toast } from "sonner";
 import Image from "next/image";
@@ -14,15 +14,62 @@ import { useRouter } from "next/navigation";
 const SearchPost = () => {
     const [openSearch, setOpenSearch] = useState(false);
     const [searchValue, setSearchValue] = useState("");
+    const [skip,setSkip] = useState(0)
     const router = useRouter()
-    const {data,isLoading,refetch} = useQuery({
-        queryKey:  [`GET_POST_ELASTIC_SEARCH`],
+    const contentRef = useRef<HTMLDivElement>(null)
+    const [dataEs,setData] = useState<any[]>([])
+    const {data,isLoading,refetch,isSuccess,isFetching } = useQuery({
+        queryKey: [`GET_POST_ELASTIC_SEARCH`, searchValue, skip],
         queryFn: async () => {
             return await getPostByElastic(
-                searchValue
+                searchValue,
+                skip
             )
         }
     })
+    const handleScroll = () => {
+        const el = contentRef.current
+        if (!el || isFetching) return
+        const isBottom = el.scrollTop + el.clientHeight >= el.scrollHeight - 5
+        if (isBottom) {
+        setSkip((prev) => prev + 50)
+        }
+    }
+    // useEffect(() => {
+    //     if (isLoadingScroll) {
+    //         refetch()
+    //             .then((res) => {
+    //                 setIsLoadingScroll(false)
+    //                 setData((prev) => [
+    //                     ...prev,
+    //                     ...res?.data.post,
+    //                 ])
+    //             })
+    //             .catch((err) => {
+    //                 console.error(err);
+    //             });
+    //         // refetch()
+    //         //     .finally(() => setIsLoadingScroll(false))
+    //     }
+    // }, [isLoadingScroll,refetch,isSuccess,data])
+    useEffect(() => {
+        if (isSuccess && data?.post) {
+            const el = contentRef.current
+            const prevScrollHeight = el?.scrollHeight ?? 0
+            if (skip === 0) {
+                setData(data.post) // lần đầu hoặc search mới
+            } else {
+                setData((prev) => [...prev, ...data.post]) // scroll thêm
+            }
+            // Sau khi render xong, restore scroll vị trí
+             requestAnimationFrame(() => {
+                if (el) {
+                    // Sau khi render xong -> scroll tới cuối content cũ
+                    el.scrollTop = prevScrollHeight
+                }
+            })
+        }
+    }, [isSuccess, data, skip])
     useEffect(() => {
         const handleKeyDown = (e: KeyboardEvent) => {
             if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "k") {
@@ -33,11 +80,10 @@ const SearchPost = () => {
         window.addEventListener("keydown", handleKeyDown)
         return () => window.removeEventListener("keydown", handleKeyDown)
     }, [openSearch])
-    useEffect(()=>{
-        setTimeout(()=> {
-            refetch()
-        },2000)
-    },[searchValue,refetch])
+    useEffect(() => {
+        setSkip(0)
+        setData([])
+    }, [searchValue])
     return (
         <>
             <div className="flex items-center w-80 h-9 rounded-md bg-gray-50 px-3 text-sm text-muted-foreground border border-gray-200">
@@ -72,14 +118,15 @@ const SearchPost = () => {
                             setSearchValue(e.target.value)
                         }}
                     />
-                    <div className="mt-4 max-h-[400px] overflow-y-auto space-y-2">
+                    <div className="mt-4 max-h-[400px] overflow-y-auto space-y-2" onScroll={handleScroll} ref={contentRef}>
                         {   !isLoading ?
-                            Array.isArray(data?.post) && data.post.length > 0 ? (
-                            data.post.map((p) => (
+                            Array.isArray(dataEs) && dataEs.length > 0 ? (
+                            dataEs.map((p) => (
                             <div
                                 key={p.id}
                                 className="flex items-center gap-3 p-2 border rounded-lg hover:bg-gray-100 cursor-pointer transition"
                                 onClick={() => {
+                                    setOpenSearch(false)
                                     router.push(`/blog/${p.slug}/${p.id}`);
                                 }}
                             >

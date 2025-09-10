@@ -11,15 +11,19 @@ import { fetchAuthRestApi } from "../api/fetchRestAPI";
 import { PostType } from "../type/modelType";
 export const getAllPost = async ({
     page,
-    pageSize
+    pageSize,
 }:{
     page?:number,
-    pageSize?:number
+    pageSize?:number,
 }) => {
+    console.log(page,pageSize)
     const {skip,take} = await convertTakeSkip({page,pageSize})
     const data = await FetchGraphQL(print(GET_ALL_POST),{
         skip,take
     },true)
+    // const dataRes = data?.data?.getAllPost_ByAdmin?.edges.map((value) => {
+    //     return value.node
+    // })
     return {
         getAllPost_ByAdmin: data?.data?.getAllPost_ByAdmin as any, 
         countAllPost: data?.data?.countAllPost as number

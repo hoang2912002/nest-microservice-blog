@@ -81,6 +81,7 @@ const SelectMultiple = ({
         }
         handleOnChange_Parent(inputField,dataRes)
     }
+    console.log(values)
     return (
         <Popover open={open} onOpenChange={setOpen}>
             <PopoverTrigger asChild>

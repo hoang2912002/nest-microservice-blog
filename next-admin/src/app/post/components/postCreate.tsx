@@ -1,4 +1,5 @@
 'use client'
+import SelectMultiple from "@/app/components/common/selectMultiple"
 import { handleChunkFile } from "@/app/helper/common"
 import { createPost, mergeChunks } from "@/app/lib/action/post"
 import { PostType } from "@/app/lib/type/modelType"
@@ -26,14 +27,16 @@ type AuthorType = {
 interface Props {
     openDialog: DialogState,
     handleShowDialog: (key: keyof DialogState, value: boolean, item?: any, refetchData?: boolean) => void,
-    authorData: AuthorType,
-    isLoading: boolean
+    authorData: AuthorType | AuthorType[],
+    isLoading: boolean,
+    handleCallRefetch: ((type:string,cb?: (newValues: any) => void) => void)
 }
 const PostCreate = ({
     openDialog,
     handleShowDialog,
     authorData,
-    isLoading
+    isLoading,
+    handleCallRefetch
 }:Props) => {
     const initialState = {
         title: "",
@@ -45,7 +48,8 @@ const PostCreate = ({
         createdAt: dayjs().format("YYYY-MM-DD"),
         thumbnail: "/no-image.png",
         published: false,
-        thumbnailFile: null
+        thumbnailFile: null,
+        authorId: ""
         
     } as any
     const [statePost, setStatePost] = useState(initialState)
@@ -100,6 +104,13 @@ const PostCreate = ({
             [inputField]: value
         }))
     }
+    const handleOnChange = (inputField : string,val: any) => {
+        setStatePost((prev) => ({
+            ...prev,
+            authorId: inputField === 'AUTHOR' ? val : prev.authorId
+        }))
+    }
+    console.log(statePost)
     return (
         <>
             <Button variant="outline" onClick={() => handleShowDialog('create',true)}>Open Dialog</Button>
@@ -136,7 +147,7 @@ const PostCreate = ({
                             </div>
                             <div className="grid gap-1">
                                 <Label>Author</Label>
-                                <Select value={statePost?.user?._id} name="authorId">
+                                {/* <Select value={statePost?.user?._id} name="authorId">
                                     <SelectTrigger className="w-full">
                                         <SelectValue placeholder="Select author" />
                                     </SelectTrigger>
@@ -159,7 +170,17 @@ const PostCreate = ({
                                                 )}
                                         </SelectGroup>
                                     </SelectContent>
-                                </Select>
+                                </Select> */}
+                                <SelectMultiple 
+                                    values={authorData} 
+                                    handleCallRefetch={handleCallRefetch} 
+                                    isLoading={isLoading} 
+                                    handleOnChange_Parent={handleOnChange} 
+                                    keyMap={['_id', 'name']}
+                                    typeCallRefetch="AUTHOR" 
+                                    mongoDB={true}
+                                />
+                                <Input type="hidden" name="authorId" value={statePost.authorId} readOnly/>
                                 {
                                     state?.errorFields?.includes('authorId') && <div className="text-red-500">AuthorId is required</div>
                                 }                

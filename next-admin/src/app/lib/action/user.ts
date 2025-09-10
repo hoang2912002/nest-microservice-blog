@@ -4,20 +4,47 @@ import { fetchAuthRestApi } from "../api/fetchRestAPI"
 import { CreateUserState, DeleteUserState, UpdateUserState } from "../type/useType"
 import { CreateUserSchema, DeleteUserSchema, UpdateUserSchema } from "../zod/userSchema"
 
-export const getAllAuthor = async () => {
-    const data = await fetchAuthRestApi(null,'user/getAllAuthor','GET',"",false)
+export const getAllAuthor = async (lastId: any) => {
+    const data = await fetchAuthRestApi({lastId},'user/getAllAuthor','POST',"",false)
     return data?.data
 }
 
 export const getAllUser = async ({
     page,
-    pageSize
+    pageSize,
+    cursor: {
+        firstId,
+        lastId,
+        type
+    }
 }:{
     page: number,
-    pageSize : number
+    pageSize : number,
+    cursor: {
+        firstId?:string,
+        lastId?:string,
+        type: number
+    }
 }) => {
     const { skip, take } = await convertTakeSkip({page,pageSize})
-    const data = await fetchAuthRestApi({skip,take},'user/getAllUserTest', 'POST', "", false)
+    const payload: any = {
+        skip,
+        take,
+        cursor: {
+            type,
+        },
+    };
+
+    if (type === 1 && firstId) {
+        // prev
+        payload.cursor.firstId = firstId;
+    }
+
+    if (type === 2 && lastId) {
+        // next
+        payload.cursor.lastId = lastId;
+    }  
+    const data = await fetchAuthRestApi({payload},'user/getAllArrUser', 'POST', "", false)
     return data?.data
 }
 

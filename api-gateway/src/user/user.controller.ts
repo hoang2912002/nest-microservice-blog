@@ -3,6 +3,7 @@ import { UserService } from './user.service';
 import { Public } from 'src/decorator/customize';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { CreateUserDto } from './dto/create-user.dto';
+import { Throttle } from '@nestjs/throttler';
 
 @Controller('user')
 export class UserController {
@@ -27,17 +28,20 @@ export class UserController {
     return await this.userService.deleteUserById(_id)
   }
 
-  @Get('getAllAuthor')
-  getAllAuthor(){
-    return this.userService.getAllAuthor()
+  @Post('getAllAuthor')
+  getAllAuthor(
+    @Body("query") query: any
+  ){
+    // const {lastId, count} = query?.cursor
+    return this.userService.getAllAuthor(query?.lastId)
   }
 
-  @Post("getAllUserTest")
-  getAllUserTest(
+  @Post("getAllArrUser")
+  getAllArrUser(
     @Body('query') query: any,
   ){
-    const {skip,take} = query
-    return this.userService.getAllUserTest({skip,take})
+    const {skip,take, cursor} = query?.payload
+    return this.userService.getAllArrUser({skip,take,cursor})
   }
 
   @Post("createUser_ByAdmin")

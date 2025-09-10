@@ -3,6 +3,7 @@ import { MessagePattern, Payload } from '@nestjs/microservices';
 import { UserService } from './user.service';
 import { CreateUserDto, SignInGoogleDto, SignUpDto, VerifyTokenDto } from './dto/create-user.dto';
 import { UpdateUserDto, UpdateUserInfoDto } from './dto/update-user.dto';
+import { skip } from 'node:test';
 
 @Controller()
 export class UserController {
@@ -14,13 +15,19 @@ export class UserController {
   }
   //List arr _id
   @MessagePattern('findAllArrId')
-  async findAllArrId() {
-    return await this.userService.findAllArrId();
+  async findAllArrId(
+    @Payload() skip: number,
+    @Payload() take: number,
+  ) {
+    return await this.userService.findAllArrId({skip,take});
   }
   
   @MessagePattern('findAllArrName')
-  async findAllArrName() {
-    return await this.userService.findAllArrName();
+  async findAllArrName(
+    @Payload() skip: number,
+    @Payload() take: number,
+  ) {
+    return await this.userService.findAllArrName({skip,take});
   }
 
   @MessagePattern('findOneUser')
@@ -66,7 +73,6 @@ export class UserController {
     return 'pong from user-service';
   }
 
-
   //-----------------Product service-----------------------
   @MessagePattern('getUser_ById_FromPost')
   async getUser_ById_FromPost(@Payload() _id:string){
@@ -81,8 +87,10 @@ export class UserController {
 
   //-----------------Admin---------------------------------
   @MessagePattern("getAllAuthor")
-  async getAllAuthor(){
-    return await this.userService.getAllAuthor()
+  async getAllAuthor(
+    @Payload() res: any,
+  ){
+    return await this.userService.getAllAuthor(res.lastId)
   }
 
   @MessagePattern("getAllAdminList")
@@ -108,5 +116,17 @@ export class UserController {
     @Payload() input: string
   ){
     return this.userService.deleteUser_ByAdmin(input)
+  }
+
+  @MessagePattern("getAllArrUser")
+  getAllArrUser(
+    @Payload() limitData: any,
+  ){
+    return this.userService.getAllArrUser({
+      skip:parseInt(limitData.skip),
+      take: parseInt(limitData.take),
+      cursor:limitData.cursor
+      
+    })
   }
 }

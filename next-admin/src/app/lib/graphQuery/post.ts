@@ -1,7 +1,8 @@
 import gql from 'graphql-tag';
 export const GET_ALL_POST = gql`
     query getAllPost_ByAdmin($skip:Int!,$take:Int!){
-        getAllPost_ByAdmin(skip:$skip,take:$take){
+        getAllPost_ByAdmin(skip:$skip,take:$take)
+        {
             id
             title
             thumbnail
@@ -10,7 +11,6 @@ export const GET_ALL_POST = gql`
             slug
             user{
                 name,
-                _id
             }
             published
         }

@@ -86,11 +86,21 @@ services:
       # Kafka cần Zookeeper để lưu metadata (vì nó chưa chạy ở chế độ KRaft)
       # zookeeper:2181 => zookeeper là tên container của Zookeeper (Docker Compose tự tạo DNS cho nó).
       KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+  redis:
+    image: redis:7.2
+    container_name: redis
+    restart: always
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis-data:/data
+    networks:
+      - backend-network
 
 volumes:
   user-mongo-data:
   es-data:
-
+  redis-data:
 networks:
   backend-network:
     driver: bridge

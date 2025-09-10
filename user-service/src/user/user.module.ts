@@ -8,6 +8,7 @@ import { Role, RoleSchema } from 'src/role/entities/role.entity';
 import { ClientProxyModule } from 'src/clientModule';
 import { UserTestModule } from 'src/user-test/user-test.module';
 import { User_Test, UserTestSchema } from 'src/user-test/entities/user-test.entity';
+import { CacheModule } from '@nestjs/cache-manager';
 
 @Module({
   imports:[
@@ -17,7 +18,8 @@ import { User_Test, UserTestSchema } from 'src/user-test/entities/user-test.enti
       { name: User_Test.name, schema: UserTestSchema },
     ]),
     UserTestModule,
-    ClientProxyModule
+    ClientProxyModule,
+    CacheModule.register(),
   ],
   controllers: [UserController,UserSeeder],
   providers: [UserService,UserSeeder],

@@ -1,7 +1,7 @@
 import { PrismaClient } from '@prisma/client'
 import { faker } from '@faker-js/faker';
 import { Transport,ClientOptions, ClientProxyFactory  } from '@nestjs/microservices';
-import { firstValueFrom } from 'rxjs';
+import { firstValueFrom, lastValueFrom } from 'rxjs';
 import slugify from 'slugify';
 const prisma = new PrismaClient()
 const options: ClientOptions = {
@@ -9,6 +9,8 @@ const options: ClientOptions = {
   options: {
     host: process.env.REDIS_HOST || undefined,
     port: process.env.REDIS_PORT ?  parseInt(process.env.REDIS_PORT) : 6379,
+    retryAttempts: 5,   // 👈 thử lại 5 lần
+    retryDelay: 3000,   // 👈 delay 3s mỗi lần thử
   },
 };
 const userClient = ClientProxyFactory.create(options);
@@ -18,11 +20,15 @@ function generateSlug(title:string):string{
 }
 
 async function main() {
-    
-    const user =  await firstValueFrom(userClient.send("findAllArrId",{}))
-    const userArrName =  await firstValueFrom(userClient.send("findAllArrName",{}))
+    //1000
+    const [user, userArrName] = await Promise.all([
+        lastValueFrom(userClient.send("findAllArrId",{skip:1000,take:499900})),
+        lastValueFrom(userClient.send("findAllArrName",{skip:1000,take:499900}))
+    ])
+    // const user =  await firstValueFrom(userClient.send("findAllArrId",{}))
+    // const userArrName =  await firstValueFrom(userClient.send("findAllArrName",{}))
     console.log(userArrName)
-    const posts = Array.from({ length: 1000 }).map(() => {
+    const posts = Array.from({ length: 4999000 }).map(() => {
         const title = faker.lorem.sentence();
         return {
             title: title,
@@ -33,31 +39,7 @@ async function main() {
             published: true,
         }
     });
-    // await Promise.all(posts.map(async(post)=> await prisma.post.create({
-    //     data: {
-    //         ...post,
-    //         //trong quá trình tạo post đồng thời tạo 20 bản ghi liên kết vs post
-    //         //làm như này ko cần phải khai báo foreign key ở comments
-    //         comments:{
-    //             createMany:{
-    //                 data: Array.from({length:40}).map(()=>({
-    //                     content: faker.lorem.sentence(),
-    //                     authorId: faker.helpers.arrayElement(user.data) as string,
-    //                 }))
-    //             }
-    //         },
-    //         likes:{
-    //             createMany:{
-    //                 //Do là 1 user chỉ được thả like 1 lần cho 1 bài post
-    //                 //nên là chỉ chọn 1 user duy nhất bằng uniqueArray
-    //                 data: faker.helpers
-    //                 .uniqueArray(() => faker.helpers.arrayElement(user.data) as string, 40)
-    //                 .map(userId => ({ userId }))
-
-    //             }
-    //         }
-    //     }
-    // })))
+    
     for (const post of posts) {
         const postData =  await prisma.post.create({
             data: {
@@ -97,7 +79,7 @@ async function main() {
                     userName: userInfo?.name ?? null
                 }
             })
-            console.log(check)
+            console.log( )
         }
         
 
@@ -112,6 +94,27 @@ async function main() {
         })
 
     }
+    // const total = 4_999_000; // tổng số post
+    // const batchSize = 10_000; // số lượng insert mỗi batch
+    // let inserted = 0;
+
+    // for (let i = 0; i < total; i += batchSize) {
+    //     const posts = Array.from({ length: batchSize }).map(() => {
+    //     const title = faker.lorem.sentence();
+    //     return {
+    //         title,
+    //         slug: generateSlug(title),
+    //         content: faker.lorem.paragraphs(3),
+    //         thumbnail: faker.image.urlPicsumPhotos(),
+    //         authorId: faker.helpers.arrayElement(user.data) as string, // TODO: thay bằng userId thật
+    //         published: true,
+    //     };
+    //     });
+
+    //     await prisma.post.createMany({ data: posts });
+    //     inserted += posts.length;
+    //     console.log(`Inserted ${inserted}/${total}`);
+    // }
     console.log("Seeding Completed!")
 
 }

@@ -10,7 +10,7 @@ export const getAllPost = async ({page,pageSize}:{page?:number,pageSize?:number}
     const {skip,take} = await convertTakeSkip({page,pageSize})
     const data = await FetchGraphQL(print(GET_ALL_POST),{skip,take},true)
     return {
-       post: data?.data?.post as Post[],
+       post: data?.data?.post.edges as Post[],
        countAllPost:data?.data?.countAllPost
     }
 }
@@ -20,9 +20,10 @@ export const getPostById = async (id:number) => {
     return data.data.postById as Post
 }
 
-export const getPostByElastic = async (content: string) => {
-    const data = await FetchGraphQL(print(GET_POST_FOR_ELASTIC),{content},true) 
+export const getPostByElastic = async (content: string,skip: number) => {
+    const data = await FetchGraphQL(print(GET_POST_FOR_ELASTIC),{content,skip},true) 
     return {
         post: data?.data?.getAllPost_ForElastic as Post[],
+        // post: [],
     }
 }

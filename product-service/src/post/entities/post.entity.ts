@@ -1,4 +1,4 @@
-import { ObjectType, Field, Int, Directive } from '@nestjs/graphql';
+import { ObjectType, Field, Int, Directive, ID } from '@nestjs/graphql';
 import { Comment } from 'src/comment/entities/comment.entity';
 import { Like } from 'src/like/entities/like.entity';
 import { Tag } from 'src/tag/entities/tag.entity';
@@ -50,4 +50,47 @@ export class Post {
   
   @Field()
   updatedAt: Date
+}
+
+@ObjectType()
+export class PostResponse {
+  @Field(() => [Post])
+  postData: Post[];
+
+  @Field(() => String, { nullable: true })
+  startCursor: string | null;
+
+  @Field(() => String, { nullable: true })
+  endCursor: string | null;
+} 
+
+@ObjectType()
+export class PostEdge {
+  @Field(() => ID)
+  cursor: string;
+
+  @Field(() => Post)
+  node: Post;
+}
+
+@ObjectType()
+export class PageInfo {
+  @Field(() => ID, { nullable: true })
+  startCursor?: string;
+
+  @Field(() => ID, { nullable: true })
+  endCursor?: string;
+
+  @Field()
+  hasNextPage: boolean;
+}
+
+
+@ObjectType()
+export class PostConnection {
+  @Field(() => [PostEdge])
+  edges: PostEdge[];
+
+  @Field(() => PageInfo)
+  pageInfo: PageInfo;
 }

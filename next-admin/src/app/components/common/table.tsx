@@ -53,6 +53,8 @@ interface DataTableProps<TData, TValue> {
     currentPage: number
     pageSize: number,
     handleShowDialog?: (key: keyof DialogState, value: boolean, dataResponse: any) => void;
+    largeData?: boolean,
+    handleChangeGetIdLargeData?: (type: number) => void
 }
 
 const TableShadcn = <TData, TValue>({
@@ -65,7 +67,9 @@ const TableShadcn = <TData, TValue>({
     isLoading,
     currentPage,
     pageSize, 
-    handleShowDialog
+    handleShowDialog,
+    largeData,
+    handleChangeGetIdLargeData
 
 }: DataTableProps<TData, TValue>) => {
     const [sorting, setSorting] = useState<SortingState>([])
@@ -242,6 +246,9 @@ const TableShadcn = <TData, TValue>({
                 handleChangeCurrentPage={handleChangeCurrentPage}
                 totalPages={pageCount}
                 currentPage={currentPage}
+                largeData={largeData}
+                handleChangeGetIdLargeData={handleChangeGetIdLargeData}
+
             />
         </div>
     )

@@ -50,7 +50,6 @@ export class ChatMessageGateway {
     @MessageBody() createChatMessageDto: CreateChatMessageDto,
     @ConnectedSocket() client: Socket,
   ) {
-    // const chatAI = await this.chatMessageService.chatWithAI(createChatMessageDto.content)
     const savedMessage = await this.chatMessageService.create(createChatMessageDto);
     const role = client.handshake?.query?.role as string;
 

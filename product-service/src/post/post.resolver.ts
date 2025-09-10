@@ -1,7 +1,7 @@
 import { Resolver, Query, Mutation, Args, Int, ResolveField, Parent, Float } from '@nestjs/graphql';
 import { PostService } from './post.service';
-import { Post } from './entities/post.entity';
-import { CreatePostDTO, CreatePostInput } from './dto/create-post.input';
+import { Post, PostConnection, PostResponse } from './entities/post.entity';
+import { CreatePostDTO, CreatePostInput, GetAllPostDTO } from './dto/create-post.input';
 import { UpdatePostDTO, UpdatePostInput, UploadChunkDto } from './dto/update-post.input';
 import { User } from 'src/user/entities/user.entity';
 import { UserService } from 'src/user/user.service';
@@ -19,10 +19,11 @@ export class PostResolver {
 
   
 
-  @Query(() => [Post], { name: 'post' })
+  @Query(() => PostConnection, { name: 'post' })
   async findAll(
     @Args('skip',{type:()=>Int}) skip: number,
     @Args('take',{type:()=>Int}) take: number,
+
   ) {
     return await this.postService.findAll({skip,take});
   }
@@ -54,7 +55,7 @@ export class PostResolver {
   //Admin
   @Query(() => [Post], {name: 'getAllPost_ByAdmin'})
   async findAllByAdmin(
-    @Args("skip", {type:()=> Int}) skip: number,
+    @Args('skip',{type:()=>Int}) skip: number,
     @Args('take',{type:()=>Int}) take: number,
   ){
     return await this.postService.findAllByAdmin({skip,take});
@@ -105,15 +106,20 @@ export class PostResolver {
 
   @Query(() => [Post], {name: "getAllPost_ForElastic"})
   getAllPost_ForElastic(
-    @Args("content",{type:() => String}) content: string
+    @Args("content",{type:() => String}) content: string,
+    @Args("skip",{type:() => Int}) skip: number
   ){
-    return this.postService.getAllPost_ForElastic(content)
+    return this.postService.getAllPost_ForElastic({content,skip})
   }
-
   @Query(() => Int, {name:"countAllPost_ForElastic"})
   countAllPost_ForElastic(
     @Args("content",{type:() => String}) content: string
   ){
     return this.postService.countAllPost_ForElastic(content)
+  }
+
+  @Query(() => Boolean, {name: "importEs"})
+  importEs(){
+    return this.postService.importEs()
   }
 }

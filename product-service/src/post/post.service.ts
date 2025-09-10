@@ -1,5 +1,5 @@
 import { HttpStatus, Inject, Injectable } from '@nestjs/common';
-import { CreatePostDTO, CreatePostInput } from './dto/create-post.input';
+import { CreatePostDTO, CreatePostInput, GetAllPostDTO } from './dto/create-post.input';
 import { UpdatePostDTO, UpdatePostInput } from './dto/update-post.input';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { errorResponse, successResponse } from 'src/util/helper';
@@ -63,22 +63,78 @@ export class PostService {
       if(cacheValue){
         return cacheValue
       }
-      const dataRes =  await this.prismaService.post.findMany({
-        skip,
+      // const dataRes =  await this.prismaService.post.findMany({
+      //   skip:3000000,
+      //   take,
+      // })
+      const pivotId = await this.getPivotId(skip);
+      if (!pivotId) {
+        return { edges: [], pageInfo: { startCursor: null, endCursor: null } };
+      }
+      const posts = await this.prismaService.post.findMany({
         take,
-      })
-      await this.cacheManager.set(`post_${skip}_${take}`, dataRes,60000);
-      return dataRes
+        cursor: { id: pivotId },
+        orderBy: { id: 'asc' },
+      });
+
+      const edges = posts.map(post => ({
+        cursor: post.id,
+        node: post,
+      }));
+      const resultData = {
+        edges,
+        pageInfo: {
+          startCursor: edges.length ? edges[0].cursor : null,
+          endCursor: edges.length ? edges[edges.length - 1].cursor : null,
+        },
+      };
+      await this.cacheManager.set(`post_${skip}_${take}`, resultData,60000);
+      return resultData
     } catch (error) {
       throw new Error('Lỗi máy chủ!')
     }
   }
 
+  
   async countAllPost(){
     try {
-      return await this.prismaService.post.count()
+      // const result = await this.prismaService.post.aggregate({
+      //   _count: { id: true },
+      // });
+      // return result._count.id;
+      const cacheValue = await this.cacheManager.get(`post_count`)
+      if(cacheValue){
+        return cacheValue
+      }
+      const resultData =  await this.prismaService.post.count()
+      await this.cacheManager.set(`post_count`, resultData,60000);
+      return resultData
     } catch (error) {
       throw new Error('Lỗi máy chủ!')
+    }
+  }
+
+  async getPivotId(skip: number) {
+    try {
+      const cacheKey = `pivot_${skip}`;
+      const cacheValue = await this.cacheManager.get<number>(cacheKey);
+      if (cacheValue) {
+        return cacheValue;
+      }
+
+      const [pivot] = await this.prismaService.post.findMany({
+        skip,
+        take: 1,
+        orderBy: { id: 'asc' },
+      });
+
+      if (pivot) {
+        await this.cacheManager.set(cacheKey, pivot.id, 60000);
+        return pivot.id;
+      }
+      return null;
+    } catch (error) {
+      throw new Error(`Lỗi máy chủ, ${error}`);
     }
   }
 
@@ -119,7 +175,10 @@ export class PostService {
   //   }
   // }
 
-  async getAllPost_ForElastic(content: string) {
+  async getAllPost_ForElastic({content,skip}:{
+    content: string,
+    skip: number
+  }) {
     try {
       const whereCondition = {
         OR: [
@@ -134,6 +193,7 @@ export class PostService {
         queryES = this.esClient.search({
           index: "posts",
           size: 50,
+          from:skip,
           query: {
             multi_match: {
               query: content,
@@ -146,65 +206,125 @@ export class PostService {
         queryES = this.esClient.search({
           index: "posts",
           size: 50,
+          from:skip,
           sort: [{ createdAt: { order: "desc" } }],
           query: { match_all: {} },
         });
       }
-
-      // 2. Đếm tổng bản ghi trong Prisma
-      const queryPosts = this.prismaService.post.findMany({
-        where: whereCondition,
-      });
-
-      const [esResult, prismaPosts] = await Promise.all([
-        queryES,
-        queryPosts,
-      ]);
-      const prismaCount = prismaPosts.length;
+      const esResult = await queryES
       const hits = esResult.hits.hits.map((h: any) => ({
         id: parseInt(h._id),
         ...h._source,
       }));
-      const esTotal = (esResult.hits.total as any)?.value ?? esResult.hits.total ?? 0;
+      return hits
+      // const cacheValue = await this.cacheManager.get(`post_elastic_search`)
+      // if(cacheValue){
+      //   return cacheValue
+      // }
+      // // 2. Đếm tổng bản ghi trong Prisma
+      // const queryPosts = this.prismaService.post.findMany({
+      //   where: whereCondition,
+      //   select: { id: true },
+      // });
+      // const [esResult, prismaPosts] = await Promise.all([
+      //   queryES,
+      //   queryPosts,
+      // ]);
+      // this.cacheManager.set(`post_elastic_search`, prismaPosts,60000);
+      // const prismaCount = prismaPosts.length;
+      // const hits = esResult.hits.hits.map((h: any) => ({
+      //   id: parseInt(h._id),
+      //   ...h._source,
+      // }));
+      // const esTotal = (esResult.hits.total as any)?.value ?? esResult.hits.total ?? 0;
 
 
-      // 3. Nếu số lượng khác nhau → check record thiếu
-      if (+prismaCount !== +esTotal && +prismaCount > + esTotal) {
-        // Lấy tất cả record trong Prisma
-        const esIds = new Set(hits.map((h: any) => h.id));
+      // // 3. Nếu số lượng khác nhau → check record thiếu
+      // if (+prismaCount !== +esTotal && +prismaCount > +esTotal) {
+      //   const esIds = new Set<number>(hits.map((h: any) => h.id));
 
-        // Lọc ra những record còn thiếu
-        const missingPosts = prismaPosts.filter((p) => !esIds.has(p.id));
+      //   // Lấy tất cả ID từ Prisma
+      //   const missingIds = prismaPosts
+      //     .map(p => p.id)
+      //     .filter(id => !esIds.has(id));
 
-        if (missingPosts.length > 0) {
-          // Insert vào Elastic
-          const body = missingPosts.flatMap((doc) => [
-            { index: { _index: 'posts', _id: doc.id.toString() } },
-            {
-              title: doc.title,
-              content: doc.content,
-              slug: doc.slug,
-              thumbnail: doc.thumbnail,
-              authorId: doc.authorId,
-              published: doc.published,
-              createdAt: doc.createdAt,
-              updatedAt: doc.updatedAt,
-            },
-          ]);
+      //   console.log(`Missing ${missingIds.length} records, syncing...`);
 
-          await this.esClient.bulk({ refresh: true, body });
-        }
+      //   const batchSize = 10000;
+      //   const syncedPosts: any[] = [];
 
-        // Trả về dữ liệu đã đồng bộ
-        return [...hits, ...missingPosts];
+      //   for (let i = 0; i < missingIds.length; i += batchSize) {
+      //     const batchIds = missingIds.slice(i, i + batchSize);
+
+      //     const posts = await this.prismaService.post.findMany({
+      //       where: { id: { in: batchIds } },
+      //       select: {
+      //         id: true,
+      //         title: true,
+      //         content: true,
+      //         slug: true,
+      //         thumbnail: true,
+      //         authorId: true,
+      //         published: true,
+      //         createdAt: true,
+      //         updatedAt: true,
+      //       },
+      //     });
+
+      //     const body = posts.flatMap((doc) => [
+      //       { index: { _index: 'posts', _id: doc.id.toString() } },
+      //       { ...doc },
+      //     ]);
+
+      //     const bulkResult = await this.esClient.bulk({ refresh: true, body });
+
+      //     if (bulkResult.errors) {
+      //       console.error("Bulk insert errors:", bulkResult.items);
+      //     }
+
+      //     syncedPosts.push(...posts);
+      //   }
+
+      //   return [...hits, ...syncedPosts];
       }
-
-      // 4. Trả về data từ Elastic (đủ rồi thì khỏi sync)
-      return hits;
-    } catch (error) {
+    catch (error) {
       console.error(error);
       throw new Error('Lỗi máy chủ!');
     }
+  }
+
+  async importEs(){
+    const batchSize = 10000;
+    const count = await this.prismaService.post.count()
+    for (let i = 1; i < count; i += batchSize) {
+      const posts = await this.prismaService.post.findMany({
+        cursor: { id: i },
+        take:10000,
+        select: {
+          id: true,
+          title: true,
+          content: true,
+          slug: true,
+          thumbnail: true,
+          authorId: true,
+          published: true,
+          createdAt: true,
+          updatedAt: true,
+        },
+      });
+
+      const body = posts.flatMap((doc) => [
+        { index: { _index: 'posts', _id: doc.id.toString() } },
+        { ...doc },
+      ]);
+
+      const bulkResult = await this.esClient.bulk({ refresh: true, body });
+
+      if (bulkResult.errors) {
+        console.error("Bulk insert errors:", bulkResult.items);
+      }
+    }
+    return true
   }
 
   async countAllPost_ForElastic(content: string){
@@ -264,14 +384,49 @@ export class PostService {
   }
 
   //Admin
-  async findAllByAdmin({skip,take}:{skip:number,take:number}) {
+  async findAllByAdmin({skip,take}:{
+    skip:number,
+    take:number
+  }) {
+    // try {
+    //   return await this.prismaService.post.findMany({
+    //     skip,
+    //     take,
+    //   })
+    // } catch (error) {
+    //   throw new Error('Lỗi máy chủ!',error)
+    // }
+    
     try {
-      return await this.prismaService.post.findMany({
-        skip,
+      const cacheValue = await this.cacheManager.get(`post_${skip}_${take}`)
+      if(cacheValue){
+        return cacheValue
+      }
+      const pivotId = await this.getPivotId(skip);
+      if (!pivotId) {
+        return { edges: [], pageInfo: { startCursor: null, endCursor: null } };
+      }
+      const posts = await this.prismaService.post.findMany({
         take,
-      })
+        cursor: { id: pivotId },
+        orderBy: { id: 'asc' },
+      });
+
+      // const edges = posts.map(post => ({
+      //   cursor: post.id,
+      //   node: post,
+      // }));
+      // const resultData = {
+      //   edges,
+      //   pageInfo: {
+      //     startCursor: edges.length ? edges[0].cursor : null,
+      //     endCursor: edges.length ? edges[edges.length - 1].cursor : null,
+      //   },
+      // };
+      await this.cacheManager.set(`post_${skip}_${take}`, posts,60000);
+      return posts
     } catch (error) {
-      throw new Error('Lỗi máy chủ!',error)
+      console.log(error)
     }
   }
 
